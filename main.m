@@ -14,7 +14,7 @@ minLat = -30;
 maxLat = 0;
 minLong = 315;
 maxLong = 360;
-LEMcoord = [360-23.3856,-3.1975];
+LEMcoord = [360-23.41930,-3.01381]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
 
 % For dimensions centered around Apollo 12 LEM
 Height = 500;
