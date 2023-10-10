@@ -3,10 +3,10 @@
 % Main Script
 
 %% Housekeeping
-% clear; clc;% close all
+clear; clc;% close all
 
 %% Load .mat
-% load("./data/DEMs.mat")
+load("./data/DEMs.mat")
 
 %% Constants
 resolution = 0.001953125;
@@ -17,8 +17,8 @@ maxLong = 360;
 LEMcoord = [360-23.3856,-3.1975];
 
 % For dimensions centered around Apollo 12 LEM
-Height = 1000;
-Width = 2000;
+Height = 500;
+Width = 1000;
 
 %% Generate Meshgrid
 % Generate axes
