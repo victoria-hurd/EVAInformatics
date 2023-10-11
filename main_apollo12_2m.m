@@ -88,7 +88,8 @@ end
 
 % Generate Meshgrid and Z axis window
 Z_elevation = imageData(Y_start_idx:Y_end_idx, X_start_idx:X_end_idx);
-Z_slope = atand(abs(gradient(Z_elevation,2,2)));
+[Z_slope_X, Z_slope_Y] = gradient(Z_elevation); %get the x and y components of the gradient
+Z_slope = atand(sqrt(Z_slope_X.^2 + Z_slope_Y.^2)); % get the normalized gradient and take the arc tan to get degrees
 [X,Y] = meshgrid(long(X_start_idx:X_end_idx),lat(Y_start_idx:Y_end_idx));
 
 %% Determining ROI Order
@@ -99,9 +100,21 @@ Z_slope = atand(abs(gradient(Z_elevation,2,2)));
 % Make entire angle column zero since we don't care about astronaut
 % orientation
 coordVec(:,3) = 0;
+% Change coordVec to include the indices
+% Index into longitudes
+coordVecInd(:,1) = round(N*(coordVec(:,1)-long(X_start_idx))/(long(X_end_idx)-long(X_start_idx)));
+% Index into latitudes
+coordVecInd(:,2) = round(M*(coordVec(:,2)-lat(Y_start_idx))/(lat(Y_end_idx)-lat(Y_start_idx)));
+% Make entire angle column zero since we don't care about astronaut
+% orientation
+coordVecInd(:,3) = 0;
 % Use output to define the start and goal poses
+startPosesInd = coordVecInd(ROIOrder(1:end-1),:);
+goalPosesInd = coordVecInd(ROIOrder(2:end),:);
 startPoses = coordVec(ROIOrder(1:end-1),:);
 goalPoses = coordVec(ROIOrder(2:end),:);
+% Change this output to be the element numbers in X and Y instead of coords
+[N,M] = size(Z_slope);
 
 %% Creating Cost Function
 % Assign cost values to a cost matrix
@@ -110,7 +123,7 @@ goalPoses = coordVec(ROIOrder(2:end),:);
 costMatrix = Z_slope;
 
 %% Appending Cost Functions
-[planner] = pathPlanner(Z_slope, costMatrix,startPoses,goalPoses);
+[planner] = pathPlanner(Z_slope, costMatrix,startPosesInd(1,:),goalPosesInd(1,:));
 figure; plot(planner)
 
 %% View
