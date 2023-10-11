@@ -152,6 +152,35 @@ for i=1:length(pathNames)
     plot(paths.(pathNames{i})); hold on;
 end
 
+% Improving plot
+title('Planned Paths for Apollo 12 EVA #2','FontSize',16);
+xlabel('Longitude','FontSize',16);
+ylabel('Latitude','FontSize',16);
+
+% Fix axes
+longlabel = long(X_start_idx:X_end_idx);
+latlabel = lat(Y_start_idx:Y_end_idx);
+
+ longlabel = longlabel(20:20:end);
+ latlabel = latlabel(20:20:end);
+ xticks(1:20:1000)
+ xticklabels(longlabel);
+ yticks(1:20:1000)
+ yticklabels(latlabel);
+
+ xlim([225 525]);
+ ylim([300 600]);
+
+ % Fix legend
+ % This is a quick way to do this for CDR? Plot nans with the same colors?
+qw{1} = plot(nan, 'Color', [0 0.4470 0.7410],LineWidth=3);
+qw{2} = plot(nan, 'Color', [0.9290 0.6940 0.1250],LineWidth=3);
+qw{3} = plot(nan, 'Color', [0.4940 0.1840 0.5560],LineWidth=3);
+qw{4} = plot(nan, 'Color', [0.4660 0.6740 0.1880],LineWidth=3); % You can add an extra element too
+legend("Slope >20\circ","Path 1","Path 2","Path 3","Path 4", "location", "northeast")
+hold off
+
+
 %% View
 % Plotting Elevation
 figure
