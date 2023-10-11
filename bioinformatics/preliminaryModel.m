@@ -3,7 +3,7 @@
 % Date: 4 October 2023
 % Purpose: 
 
-close all;
+%close all;
 clear;
 clc;
 
@@ -43,9 +43,16 @@ W_level = zeros(size(grade));
 % Work due to sloped (+ or -) walking
 W_slope = zeros(size(grade));
 
-v = zeros(size(grade));
+%v = zeros(size(grade));
 
-alpha = zeros(size(grade));
+%alpha = zeros(size(grade));
+
+%% From simulation team
+load terrain_output.mat;
+alpha = deg2rad(Z_slope);
+grid_size = size(alpha);
+
+v = 1.34; %[m/s]
 
 %% Calculating Work over each square
 
@@ -53,9 +60,9 @@ for i = 1:grid_size(1)
     for j = 1:grid_size(2)
 
         % Choosing random (feasible) grade
-        alpha(i,j) = slope_val(randi(length(slope_val)));
+        %alpha(i,j) = slope_val(randi(length(slope_val)));
         % Choosing random (feasible) velocity
-        v(i,j) = v_val(randi(length(v_val)));
+        %v = v_val(randi(length(v_val)));
 
         % if level walking
         if alpha(i,j) == 0
@@ -63,34 +70,39 @@ for i = 1:grid_size(1)
 
         % if inclined walking: W=PE=k*mgh
         elseif alpha(i,j) >= 0
-            W_slope(i,j) = kc*m*g*v(i,j)*sin(alpha(i,j));
+            W_slope(i,j) = kc*m*g*v*sin(alpha(i,j));
 
         % if declined walking: W=k*mgh*(correction factor due to energy
         % being absorbed in muscles and in the joints)
         elseif alpha(i,j) <= 0
-            W_slope(i,j) = ke*m*g*v(i,j)*sin(alpha(i,j))*0.3^(abs(alpha(i,j))/7.65);
+            W_slope(i,j) = ke*m*g*v*sin(alpha(i,j))*0.3^(abs(alpha(i,j))/7.65);
         end
 
         % level walking contribution
-        W_level(i,j) = (3.28*m + 71.1) * (0.661*v(i,j)*cos(alpha(i,j)) + 0.115);
+        W_level(i,j) = (3.28*m + 71.1) * (0.661*v*cos(alpha(i,j)) + 0.115);
 
     end
 end
 
-%% Metabolic Rate
+%% Metabolic Rate, USE THIS IN PATH PLANNING!!!!
 MR = W_level + W_slope; %[J/s]
-MR = MR/4184*3600; %[kcal/min] <3 English <3 units <3
+MR = MR/4184; %[kcal/s] <3 English <3 units <3
 
 %% Time over Each Square
-t = v/d/3600; %[hr] time in hours
+t = sqrt((d^2+d^2))/v; %[s] time, constant for now
 
-%% Metabolic Cost
-MC = MR.*t;
+%% Metabolic Cost Per Square
+MC = MR*t; %[kcal] SOMETHIN IS WRONG WITH THIS CALCULATION RN.... GOTTA FIGURE IT OUT
 
 %% Plotting Metabolic Rate
 figure(1);
 hold on;
-contourf(MR);
+minLevel = min(MC,[],'all');
+maxLevel = max(MC,[],'all');
+avgLevel = mean([minLevel maxLevel]);
+levels = linspace(minLevel,maxLevel,8);
+%levels = [linspace(minLevel,avgLevel,5) linspace(avgLevel+100,maxLevel-300,2)];
+contourf(X,Y,MC,levels);
 colorbar;
 
 figure(2);
