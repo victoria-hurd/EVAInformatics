@@ -151,6 +151,7 @@ hold on;
 for i=1:length(pathNames)
     plot(paths.(pathNames{i})); hold on;
 end
+
 %% View
 % Plotting Elevation
 figure
@@ -170,6 +171,7 @@ c = colorbar;
 c.Label.String = "Elevation [Meters]";
 c.Label.Rotation = 270;
 c.Label.VerticalAlignment = "bottom";
+view(2)
 hold off
 
 % Plotting Slope
@@ -190,4 +192,5 @@ c = colorbar;
 c.Label.String = "Slope [deg]";
 c.Label.Rotation = 270;
 c.Label.VerticalAlignment = "bottom";
+view(2)
 hold off
