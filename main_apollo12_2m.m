@@ -114,10 +114,22 @@ goalPoses = coordVec(ROIOrder(2:end),:);
 % Eventually we will add in physio, etc
 costMatrix = Z_slope;
 
-%% Appending Cost Functions
-[planner] = pathPlanner(Z_slope, costMatrix,startPoses,goalPoses);
-figure; plot(planner)
+%% Iterate over ROI
+paths = struct;
+for i=1:height(startPoses)
+    [newPath,~] = pathPlanner(Z_slope, costMatrix, startPoses(i,:), goalPoses(i,:));
+    paths.(['Path' int2str(i)]) = newPath;
+end
+[~,planner] = pathPlanner(Z_slope, costMatrix, startPoses(1,:), goalPoses(1,:));
+pathNames = fieldnames(paths);
 
+%% Plot results
+figure;
+plot(planner);
+hold on;
+for i=1:length(pathNames)
+    plot(paths.(pathNames{i})); hold on;
+end
 %% View
 % Plotting Elevation
 figure
