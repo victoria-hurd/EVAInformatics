@@ -37,7 +37,7 @@ LEMcoord = [360-23.41930,-3.01381]; % Using the Adjusted Coordinates https://his
 ALSEPcoord = [360-23.42456,-3.01084]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
 
 % For dimensions centered around Apollo 12 LEM
-Radius = 5000; %meters
+Radius = 1000; %meters
 Height = Radius / pixel_resolution;
 Width = Radius / pixel_resolution;
 
@@ -81,7 +81,9 @@ end
 Z_elevation = imageData(Y_start_idx:Y_end_idx, X_start_idx:X_end_idx);
 
 [Z_slope_X, Z_slope_Y] = gradient(Z_elevation); %get the x and y components of the gradient
-Z_slope = atand(sqrt(Z_slope_X.^2 + Z_slope_Y.^2)); % get the normalized gradient and take the arc tan to get degrees
+%Z_slope = atand(sqrt(Z_slope_X.^2 + Z_slope_Y.^2)); % get the normalized gradient and take the arc tan to get degrees
+Z_slope = atand(abs(max(Z_slope_X, Z_slope_Y))); % for worst case
+% scenario - get the maximum slope instead of normalized
 
 [X,Y] = meshgrid(long(X_start_idx:X_end_idx), lat(Y_start_idx:Y_end_idx));
 %% View
