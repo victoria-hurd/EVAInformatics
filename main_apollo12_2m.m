@@ -1,4 +1,4 @@
-% Aaron Weinberg
+% Aaron Weinberg, Erin Richardson, Victoria Hurd
 % EVA Informatics
 % Apollo 12 2m Slope Data
 
@@ -25,19 +25,36 @@ t = Tiff("./data_2m/NAC_DTM_APOLLO12.tiff",'r');
 imageData = read(t);
 imageData(imageData < -1000000000) = NaN; % out of bound data needs to be marked NaN
 
-
-
 %% Constants
-pixel_resolution = 2; %meters / pixel
+pixel_resolution = 2; % meters / pixel
 minLat = -3.05226826;
 maxLat = -2.96217267;
 minLong = 336.45205417;
 maxLong = 336.61505963;
+
 LEMcoord = [360-23.41930,-3.01381]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
 ALSEPcoord = [360-23.42456,-3.01084]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
+% Numbering for each POI is from https://an.rsl.wustl.edu/apollo/mainnavsp.aspx?tab=map&m=A12
+%coord12004 = [336.569,-3.00706]; % Measured by hand from figure 1 - Middle Crescent Crater
+coord12055 = [336.573,-3.01233]; % Measured by hand from figure 1 - North Head Crater
+coord12052 = [336.572,-3.01384]; % Measured by hand from figure 1 - West Head Crater
+coord12040 = [336.570, -3.01938]; % Measured by hand from figure 1 - NW Bench Crater
+coord12024 = [336.565,-3.0205]; % Measured by hand from figure 1 - E Sharp Crater
+coord12041 = [336.571,-3.02024]; % Measured by hand from figure 1 - E Bench Crater
+coordVec = [coord12055;coord12052;coord12040;coord12024;coord12041];
 
+% the below are based on element numbers, not degrees
+coord12055 = [384,530]; % Measured by hand from figure 1 - North Head Crater
+coord12052 = [353,490]; % Measured by hand from figure 1 - West Head Crater
+coord12040 = [341, 427]; % Measured by hand from figure 1 - NW Bench Crater
+coord12024 = [275,387]; % Measured by hand from figure 1 - E Sharp Crater
+coord12041 = [365,402]; % Measured by hand from figure 1 - E Bench Crater
+coordVec = [coord12055;coord12024;coord12040;coord12052;coord12041];
+
+
+%% Auto-Centering
 % For dimensions centered around Apollo 12 LEM
-Radius = 1000; %meters
+Radius = 1000; % meters - (temporary fix: decreased this from 5000 to 1000 to avoid NaNs that were present along the outsides of the map)
 Height = Radius / pixel_resolution;
 Width = Radius / pixel_resolution;
 
@@ -79,11 +96,62 @@ end
 
 % Generate Meshgrid and Z axis window
 Z_elevation = imageData(Y_start_idx:Y_end_idx, X_start_idx:X_end_idx);
-
 [Z_slope_X, Z_slope_Y] = gradient(Z_elevation); %get the x and y components of the gradient
 Z_slope = atand(sqrt(Z_slope_X.^2 + Z_slope_Y.^2)); % get the normalized gradient and take the arc tan to get degrees
+[X,Y] = meshgrid(long(X_start_idx:X_end_idx),lat(Y_start_idx:Y_end_idx));
 
-[X,Y] = meshgrid(long(X_start_idx:X_end_idx), lat(Y_start_idx:Y_end_idx));
+%% Determining ROI Order
+
+% Use SolveTSP to solve traveling salesman problem
+% Provide SolveTSP coordinates of multiple ROI as well as your start and end
+% points
+% Ensure your starting point is the first coordinate pair
+% Ensure your ending point is the last coordinate pair
+% The ROI (in between) doesn't matter
+[ROIOrder] = SolveTSP(coordVec);
+
+% Make entire angle column zero since we don't care about astronaut
+% orientation
+coordVec(:,3) = 0;
+% Change coordVec to include the indices
+% Change this output to be the element numbers in X and Y instead of coords
+[N,M] = size(Z_slope);
+% Index into longitudes
+%coordVecInd(:,1) = round(N*(coordVec(:,1)-long(X_start_idx))/(long(X_end_idx)-long(X_start_idx)));
+% Index into latitudes
+%coordVecInd(:,2) = round(M*(coordVec(:,2)-lat(Y_start_idx))/(lat(Y_end_idx)-lat(Y_start_idx)));
+% Make entire angle column zero since we don't care about astronaut
+% orientation
+coordVec(:,3) = 0;
+% Use output to define the start and goal poses
+startPosesInd = coordVec(ROIOrder(1:end-1),:);
+goalPosesInd = coordVec(ROIOrder(2:end),:);
+startPoses = coordVec(ROIOrder(1:end-1),:);
+goalPoses = coordVec(ROIOrder(2:end),:);
+
+%% Creating Cost Function
+% Assign cost values to a cost matrix
+% Right now the only input to cost is Z_slope
+% Eventually we will add in physio, etc
+costMatrix = Z_slope;
+
+%% Iterate over ROI
+paths = struct;
+for i=1:height(startPoses)
+    [newPath,~] = pathPlanner(Z_slope, costMatrix, startPoses(i,:), goalPoses(i,:));
+    paths.(['Path' int2str(i)]) = newPath;
+end
+[~,planner] = pathPlanner(Z_slope, costMatrix, startPoses(1,:), goalPoses(1,:));
+pathNames = fieldnames(paths);
+
+%% Plot results
+figure;
+plot(planner);
+hold on;
+for i=1:length(pathNames)
+    plot(paths.(pathNames{i})); hold on;
+end
+
 %% View
 % Plotting Elevation
 figure
