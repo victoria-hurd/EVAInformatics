@@ -79,9 +79,11 @@ end
 
 % Generate Meshgrid and Z axis window
 Z_elevation = imageData(Y_start_idx:Y_end_idx, X_start_idx:X_end_idx);
-Z_slope = atand(abs(gradient(Z_elevation)));
-[X,Y] = meshgrid(long(X_start_idx:X_end_idx),lat(Y_start_idx:Y_end_idx));
+[Z_slope_X, Z_slope_Y] = gradient(Z_elevation); %get the x and y components of the gradient
+Z_slope = atand(sqrt(Z_slope_X.^2 + Z_slope_Y.^2)); % get the normalized gradient and take the arc tan to get degrees
 
+% norm([[1,2], [3,4]])
+[X,Y] = meshgrid(long(X_start_idx:X_end_idx), lat(Y_start_idx:Y_end_idx));
 %% View
 % Plotting Elevation
 figure
