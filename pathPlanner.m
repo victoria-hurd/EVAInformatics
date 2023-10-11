@@ -2,8 +2,8 @@
 %% Make a cost map 
 function [planner] = pathPlanner(Z_slope,costMatrix,startPose,goalPose)
 % Define parameters
-% startPose = [400,400,0];
-% goalPose = [500,500,0];
+% startPose = [300,300,0];
+% goalPose = [400,400,0];
 
 % Normalize from 0 to 1
 costMatrix = normalize(costMatrix,'range');
@@ -16,6 +16,6 @@ costmap.FreeThreshold = double(20/max(Z_slope,[],'all'));
 planner = pathPlannerRRT(costmap);
 
 %% Plan a path
-refPath = plan(planner,startPose(1,:), goalPose(1,:));
+refPath = plan(planner,startPose, goalPose);
 isValid = checkPathValidity(refPath,costmap); % add error if statement here
 end
