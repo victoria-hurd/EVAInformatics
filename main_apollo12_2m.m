@@ -88,8 +88,30 @@ end
 
 % Generate Meshgrid and Z axis window
 Z_elevation = imageData(Y_start_idx:Y_end_idx, X_start_idx:X_end_idx);
-Z_slope = atand(abs(gradient(Z_elevation)));
+Z_slope = atand(abs(gradient(Z_elevation,2,2)));
 [X,Y] = meshgrid(long(X_start_idx:X_end_idx),lat(Y_start_idx:Y_end_idx));
+
+%% Determining ROI Order
+% Erin's code here
+[ROIOrder] = SolveTSP(coordVec);
+% Output 
+%ROIorder = [1 2 3 4 5];
+% Make entire angle column zero since we don't care about astronaut
+% orientation
+coordVec(:,3) = 0;
+% Use output to define the start and goal poses
+startPoses = coordVec(ROIOrder(1:end-1),:);
+goalPoses = coordVec(ROIOrder(2:end),:);
+
+%% Creating Cost Function
+% Assign cost values to a cost matrix
+% Right now the only input to cost is Z_slope
+% Eventually we will add in physio, etc
+costMatrix = Z_slope;
+
+%% Appending Cost Functions
+[planner] = pathPlanner(Z_slope, costMatrix,startPoses,goalPoses);
+figure; plot(planner)
 
 %% View
 % Plotting Elevation
