@@ -1,4 +1,4 @@
-% Aaron Weinberg
+% Aaron Weinberg, Erin Richardson, Victoria Hurd
 % EVA Informatics
 % Apollo 12 2m Slope Data
 
@@ -25,8 +25,6 @@ t = Tiff("./data_2m/NAC_DTM_APOLLO12.tiff",'r');
 imageData = read(t);
 imageData(imageData < -1000000000) = NaN; % out of bound data needs to be marked NaN
 
-
-
 %% Constants
 pixel_resolution = 2; %meters / pixel
 minLat = -3.05226826;
@@ -36,7 +34,17 @@ maxLong = 336.61505963;
 
 LEMcoord = [360-23.41930,-3.01381]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
 ALSEPcoord = [360-23.42456,-3.01084]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
+% Numbering for each POI is from https://an.rsl.wustl.edu/apollo/mainnavsp.aspx?tab=map&m=A12
+%coord12004 = [336.569,-3.00706]; % Measured by hand from figure 1 - Middle Crescent Crater
+coord12055 = [336.573,-3.01233]; % Measured by hand from figure 1 - North Head Crater
+coord12052 = [336.572,-3.01384]; % Measured by hand from figure 1 - West Head Crater
+coord12040 = [336.570, -3.01938]; % Measured by hand from figure 1 - NW Bench Crater
+coord12024 = [336.565,-3.0205]; % Measured by hand from figure 1 - E Sharp Crater
+coord12041 = [336.571,-3.02024]; % Measured by hand from figure 1 - E Bench Crater
+coordVec = [coord12055;coord12052;coord12040;coord12024;coord12041];
 
+
+%% Auto-Centering
 % For dimensions centered around Apollo 12 LEM
 Radius = 1000; %meters
 Height = Radius / pixel_resolution;
