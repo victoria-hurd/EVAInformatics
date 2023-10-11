@@ -19,6 +19,6 @@ costmap.CollisionChecker.InflationRadius = 0;
 planner = pathPlannerRRT(costmap);
 
 %% Plan a path
-refPath = plan(planner,startPose(1,:), goalPose(1,:));
+refPath = plan(planner,startPose, goalPose);
 isValid = checkPathValidity(refPath,costmap); % add error if statement here
 end

@@ -27,7 +27,7 @@ function [ROIOrder] = SolveTSP(coordVec)
     % between start & end node (based on stackoverflow answer linked above)
     % TODO - remove this manual step: should be able to automate based on
     % node numbering
-    dist(4)=0; dist(7)=99; dist(9)=99; dist(10)=99;
+    %dist(4)=0; dist(7)=99; dist(9)=99; dist(10)=99;
     
     lendist = length(dist);
     
@@ -65,7 +65,7 @@ function [ROIOrder] = SolveTSP(coordVec)
     
     ROICounter = 1;
     i=1;
-    while length(ROIOrder)<5
+    while length(ROIOrder)<nROI
         if sol_tsp(i,1) == ROICounter
             if sol_tsp(i,1) ~= nROI
                 ROIOrder = [ROIOrder sol_tsp(i,1)];
