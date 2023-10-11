@@ -71,12 +71,14 @@ function [ROIOrder] = SolveTSP(coordVec)
                 ROIOrder = [ROIOrder sol_tsp(i,1)];
                 ROICounter = sol_tsp(i,2);
                 sol_tsp(i,:) = [];
+                i=1;
             end
         elseif sol_tsp(i,2) == ROICounter
             if sol_tsp(i,2) ~= nROI
                 ROIOrder = [ROIOrder sol_tsp(i,2)];
                 ROICounter = sol_tsp(i,1);
                 sol_tsp(i,:) = [];
+                i=1;
             end
         else
             i=i+1;

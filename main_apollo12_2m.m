@@ -49,7 +49,7 @@ coord12052 = [353,490]; % Measured by hand from figure 1 - West Head Crater
 coord12040 = [341, 427]; % Measured by hand from figure 1 - NW Bench Crater
 coord12024 = [275,387]; % Measured by hand from figure 1 - E Sharp Crater
 coord12041 = [365,402]; % Measured by hand from figure 1 - E Bench Crater
-coordVecInd = [coord12055;coord12052;coord12040;coord12024;coord12041];
+coordVec = [coord12055;coord12024;coord12040;coord12052;coord12041];
 
 
 %% Auto-Centering
@@ -108,8 +108,8 @@ Z_slope = atand(sqrt(Z_slope_X.^2 + Z_slope_Y.^2)); % get the normalized gradien
 % Ensure your starting point is the first coordinate pair
 % Ensure your ending point is the last coordinate pair
 % The ROI (in between) doesn't matter
-%[ROIOrder] = SolveTSP(coordVec);
-ROIOrder = [1 2 3 4 5]; % For debugging
+[ROIOrder] = SolveTSP(coordVec);
+
 % Make entire angle column zero since we don't care about astronaut
 % orientation
 coordVec(:,3) = 0;
@@ -122,10 +122,10 @@ coordVec(:,3) = 0;
 %coordVecInd(:,2) = round(M*(coordVec(:,2)-lat(Y_start_idx))/(lat(Y_end_idx)-lat(Y_start_idx)));
 % Make entire angle column zero since we don't care about astronaut
 % orientation
-coordVecInd(:,3) = 0;
+coordVec(:,3) = 0;
 % Use output to define the start and goal poses
-startPosesInd = coordVecInd(ROIOrder(1:end-1),:);
-goalPosesInd = coordVecInd(ROIOrder(2:end),:);
+startPosesInd = coordVec(ROIOrder(1:end-1),:);
+goalPosesInd = coordVec(ROIOrder(2:end),:);
 startPoses = coordVec(ROIOrder(1:end-1),:);
 goalPoses = coordVec(ROIOrder(2:end),:);
 
