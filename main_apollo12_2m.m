@@ -103,6 +103,7 @@ c = colorbar;
 c.Label.String = "Elevation [Meters]";
 c.Label.Rotation = 270;
 c.Label.VerticalAlignment = "bottom";
+view(2)
 hold off
 
 % Plotting Slope
@@ -123,4 +124,5 @@ c = colorbar;
 c.Label.String = "Slope [deg]";
 c.Label.Rotation = 270;
 c.Label.VerticalAlignment = "bottom";
+view(2)
 hold off
