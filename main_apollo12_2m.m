@@ -131,9 +131,20 @@ goalPoses = coordVec(ROIOrder(2:end),:);
 
 %% Creating Cost Function
 % Assign cost values to a cost matrix
-% Right now the only input to cost is Z_slope
-% Eventually we will add in physio, etc
-costMatrix = Z_slope;
+
+% Load and normalize metabolic rate costs
+load('MR.mat');
+% MR = normalize(MR,'range');
+
+% Add MR costs to Z_slope costs
+%costMatrix = MR + normalize(Z_slope,'range');
+costMatrix = MR;
+
+% Normalize entire matrix
+costMatrix = normalize(costMatrix,'range');
+
+% Set cells with slopes above 20deg to Occupied
+costMatrix(Z_slope > 20) = 0.999;
 
 %% Iterate over ROI
 paths = struct;
@@ -217,6 +228,7 @@ xlabel("Longitude [deg]")
 ylabel("Latitude [deg]")
 axis equal
 axis tight
+colormap turbo
 c = colorbar;
 c.Label.String = "Slope [deg]";
 c.Label.Rotation = 270;
