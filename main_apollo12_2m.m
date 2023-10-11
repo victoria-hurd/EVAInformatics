@@ -26,7 +26,7 @@ imageData = read(t);
 imageData(imageData < -1000000000) = NaN; % out of bound data needs to be marked NaN
 
 %% Constants
-pixel_resolution = 2; %meters / pixel
+pixel_resolution = 2; % meters / pixel
 minLat = -3.05226826;
 maxLat = -2.96217267;
 minLong = 336.45205417;
@@ -46,7 +46,7 @@ coordVec = [coord12055;coord12052;coord12040;coord12024;coord12041];
 
 %% Auto-Centering
 % For dimensions centered around Apollo 12 LEM
-Radius = 1000; %meters
+Radius = 1000; % meters - (temporary fix: decreased this from 5000 to 1000 to avoid NaNs that were present along the outsides of the map)
 Height = Radius / pixel_resolution;
 Width = Radius / pixel_resolution;
 
@@ -93,10 +93,15 @@ Z_slope = atand(sqrt(Z_slope_X.^2 + Z_slope_Y.^2)); % get the normalized gradien
 [X,Y] = meshgrid(long(X_start_idx:X_end_idx),lat(Y_start_idx:Y_end_idx));
 
 %% Determining ROI Order
-% Erin's code here
+
+% Use SolveTSP to solve traveling salesman problem
+% Provide SolveTSP coordinates of multiple ROI as well as your start and end
+% points
+% Ensure your starting point is the first coordinate pair
+% Ensure your ending point is the last coordinate pair
+% The ROI (in between) doesn't matter
 [ROIOrder] = SolveTSP(coordVec);
-% Output 
-%ROIorder = [1 2 3 4 5];
+
 % Make entire angle column zero since we don't care about astronaut
 % orientation
 coordVec(:,3) = 0;
