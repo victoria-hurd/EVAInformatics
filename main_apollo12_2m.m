@@ -43,6 +43,14 @@ coord12024 = [336.565,-3.0205]; % Measured by hand from figure 1 - E Sharp Crate
 coord12041 = [336.571,-3.02024]; % Measured by hand from figure 1 - E Bench Crater
 coordVec = [coord12055;coord12052;coord12040;coord12024;coord12041];
 
+% the below are based on element numbers, not degrees
+coord12055 = [384,530]; % Measured by hand from figure 1 - North Head Crater
+coord12052 = [353,490]; % Measured by hand from figure 1 - West Head Crater
+coord12040 = [341, 427]; % Measured by hand from figure 1 - NW Bench Crater
+coord12024 = [275,387]; % Measured by hand from figure 1 - E Sharp Crater
+coord12041 = [365,402]; % Measured by hand from figure 1 - E Bench Crater
+coordVecInd = [coord12055;coord12052;coord12040;coord12024;coord12041];
+
 
 %% Auto-Centering
 % For dimensions centered around Apollo 12 LEM
@@ -100,16 +108,18 @@ Z_slope = atand(sqrt(Z_slope_X.^2 + Z_slope_Y.^2)); % get the normalized gradien
 % Ensure your starting point is the first coordinate pair
 % Ensure your ending point is the last coordinate pair
 % The ROI (in between) doesn't matter
-[ROIOrder] = SolveTSP(coordVec);
-
+%[ROIOrder] = SolveTSP(coordVec);
+ROIOrder = [1 2 3 4 5]; % For debugging
 % Make entire angle column zero since we don't care about astronaut
 % orientation
 coordVec(:,3) = 0;
 % Change coordVec to include the indices
+% Change this output to be the element numbers in X and Y instead of coords
+[N,M] = size(Z_slope);
 % Index into longitudes
-coordVecInd(:,1) = round(N*(coordVec(:,1)-long(X_start_idx))/(long(X_end_idx)-long(X_start_idx)));
+%coordVecInd(:,1) = round(N*(coordVec(:,1)-long(X_start_idx))/(long(X_end_idx)-long(X_start_idx)));
 % Index into latitudes
-coordVecInd(:,2) = round(M*(coordVec(:,2)-lat(Y_start_idx))/(lat(Y_end_idx)-lat(Y_start_idx)));
+%coordVecInd(:,2) = round(M*(coordVec(:,2)-lat(Y_start_idx))/(lat(Y_end_idx)-lat(Y_start_idx)));
 % Make entire angle column zero since we don't care about astronaut
 % orientation
 coordVecInd(:,3) = 0;
@@ -118,8 +128,6 @@ startPosesInd = coordVecInd(ROIOrder(1:end-1),:);
 goalPosesInd = coordVecInd(ROIOrder(2:end),:);
 startPoses = coordVec(ROIOrder(1:end-1),:);
 goalPoses = coordVec(ROIOrder(2:end),:);
-% Change this output to be the element numbers in X and Y instead of coords
-[N,M] = size(Z_slope);
 
 %% Creating Cost Function
 % Assign cost values to a cost matrix
@@ -128,8 +136,7 @@ goalPoses = coordVec(ROIOrder(2:end),:);
 costMatrix = Z_slope;
 
 %% Appending Cost Functions
-[planner] = pathPlanner(Z_slope, costMatrix,startPosesInd(1,:),goalPosesInd(1,:));
-figure; plot(planner)
+[refPath, costmap] = pathPlanner(Z_slope, costMatrix,startPosesInd,goalPosesInd);
 
 %% View
 % Plotting Elevation
