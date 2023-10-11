@@ -33,11 +33,12 @@ minLat = -3.05226826;
 maxLat = -2.96217267;
 minLong = 336.45205417;
 maxLong = 336.61505963;
+
 LEMcoord = [360-23.41930,-3.01381]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
 ALSEPcoord = [360-23.42456,-3.01084]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
 
 % For dimensions centered around Apollo 12 LEM
-Radius = 5000; %meters
+Radius = 1000; %meters
 Height = Radius / pixel_resolution;
 Width = Radius / pixel_resolution;
 
