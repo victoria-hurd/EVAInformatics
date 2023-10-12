@@ -12,8 +12,10 @@ costmap = vehicleCostmap(costMatrix);
 % scatter(goalPose(:,1),goalPose(:,2),'filled')
 % hold off
 % Set occupancy and free threshold
-costmap.OccupiedThreshold = double(20/max(Z_slope,[],'all'));
-costmap.FreeThreshold = double(20/max(Z_slope,[],'all'));
+% costmap.OccupiedThreshold = double(20/max(Z_slope,[],'all'));
+% costmap.FreeThreshold = double(20/max(Z_slope,[],'all'));
+costmap.OccupiedThreshold = double(0.99);
+costmap.FreeThreshold = double(0.99);
 % Set inflation radius to 0
 costmap.CollisionChecker.InflationRadius = 0;
 planner = pathPlannerRRT(costmap);
