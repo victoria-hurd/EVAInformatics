@@ -11,12 +11,6 @@
 %    cost_matrix = floating point values of the same dimensions as Z_slope
 
 function cost_matrix = create_cost_matrix(X, Y, Z_slope)
-%% Replace The Temporary Solution Below With The output of the real cost function
-    %   .
-    %   .
-    %   .
-    %   .
-
 %% %%%%%%%%%%%%%%%%%%%%%%% Santee's Model (2001) %%%%%%%%%%%%%%%%%%%%%%% %%
 
     %% Constants

@@ -44,7 +44,7 @@ function main_runner()
     cost_matrix = create_cost_matrix(X, Y, Z_slope);
     
     %% Get Path between ROIs
-    path = get_path(POIs, X, Y, Z_slope, cost_matrix);
+    path = create_path(POIs, X, Y, Z_slope, cost_matrix);
     
     %% Plot Moving Along Path
     % TODO: integrate physio monitoring alerts.

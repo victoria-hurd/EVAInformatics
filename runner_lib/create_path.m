@@ -13,7 +13,7 @@
 % Outputs
 %    path = [X_coordinates, Y_Coordinates]
 
-function path = get_path(ROIs, X, Y, Z_slope, cost_matrix)
+function path = create_path(ROIs, X, Y, Z_slope, cost_matrix)
 %% Creating Cost Function
     % Normalize entire matrix
     cost_matrix = normalize(cost_matrix,'range');
