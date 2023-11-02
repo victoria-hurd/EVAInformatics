@@ -23,10 +23,9 @@
 %    height_coords = Degres Longitude
 
 % Outputs
-%    X = [X_coordinates, X_coordinates] created with meshgrid 
-%    Y = [Y_coordinates, Y_coordinates] created with meshgrid
+
 %    Z_elevation = floating point value for elevatoin in meters 
-%    Z_slope = floating point value for slope in degrees 
+%    Z_slope = matrix of slope (degrees)
 function [X, Y, Z_elevation, Z_slope] = get_map_data(X_Center, Y_Center,  width_coords, height_coords)
     %% Load .mat
     t = Tiff("./NAC_DTM_APOLLO12.tiff",'r');

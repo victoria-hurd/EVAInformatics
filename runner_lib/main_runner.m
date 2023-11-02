@@ -1,7 +1,7 @@
 %% main_runner
 %  Main Runner Script
 %  Gathers input map data
-%  determines ROI order 
+%  determines POI order 
 %  creates a predicted cost map
 %  creates path between ROIs factoring in the cost map
 %  Creates a vizualization for traversing the path with alerts displayed
@@ -17,7 +17,7 @@ function main_runner()
     LEMcoord = [360-23.41930,-3.01381]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
     ALSEPcoord = [360-23.42456,-3.01084]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
     % Numbering for each POI is from https://an.rsl.wustl.edu/apollo/mainnavsp.aspx?tab=map&m=A12
-%     coord12004 = [336.569,-3.00706]; % Measured by hand from figure 1 - Middle Crescent Crater
+    coord12004 = [336.569,-3.00706]; % Measured by hand from figure 1 - Middle Crescent Crater
     coord12055 = [336.573,-3.01233]; % Measured by hand from figure 1 - North Head Crater
     coord12052 = [336.572,-3.01384]; % Measured by hand from figure 1 - West Head Crater
     coord12040 = [336.570, -3.01938]; % Measured by hand from figure 1 - NW Bench Crater
@@ -26,7 +26,7 @@ function main_runner()
     coordVec = [coord12055;coord12052;coord12040;coord12024;coord12041];
 
     
-    %% Get Map Data Centered on the ROIs
+    %% Get Map Data Centered on the POIs (Points of Interrest)
     %Get center and radius that encompasses all points automatically with 1.5 scale out   
     Scale_factor = 1.5;
     center_X = (min(coordVec(:,1)) + max(coordVec(:,1)))/2;
@@ -36,13 +36,18 @@ function main_runner()
 
     [X, Y, Z_elevation, Z_slope] = get_map_data(center_X, center_Y,  width_coords, height_coords);
 
-    %% Determining ROI Order
-    [ROIs, startPoses, goalPoses] = determine_ROI_order(coordVec);
+    %% Determining POI Order
+    POIOrder = SolveTSP(coordVec);
+    POIs = coordVec(POIOrder,:);
+    
+    %% Create the Cost Matric
+    cost_matrix = create_cost_matrix(X, Y, Z_slope);
     
     %% Get Path between ROIs
-    path = get_path(ROIs);
+    path = get_path(POIs, X, Y, Z_slope, cost_matrix);
     
     %% Plot Moving Along Path
-    plot_evelation_path_full_view(X, Y, Z_elevation, ROIs, path);
+    % TODO: integrate physio monitoring alerts.
+    plot_evelation_path_full_view(X, Y, Z_elevation, POIs, path);
     
 end

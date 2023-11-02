@@ -13,7 +13,7 @@
 %    Displays a plot
 %    
 
-function plot_evelation_path_full_view(X, Y, Z, ROIs, path)
+function plot_evelation_path_full_view(X, Y, Z, POIs, path)
     %% Plot Z Map
     fig = uifigure('Name','Path Vizualization');
     g = uigridlayout(fig,[2 3]);
@@ -41,15 +41,15 @@ function plot_evelation_path_full_view(X, Y, Z, ROIs, path)
     view(ax, 2)
     
     %% Plot ROIs
-    scatter(ax, ROIs(:, 1),   ROIs(:, 2), 14, "filled", "black")
+    scatter(ax, POIs(:, 1),   POIs(:, 2), 14, "filled", "black")
     dx = .0002;
     dy = -.0002;
-    num_ROIs = length(ROIs);
+    num_ROIs = length(POIs);
     c = cell(num_ROIs, 1);
     for i = 1:num_ROIs
     	c{i} = num2str(i);
     end
-    text(ax, ROIs(:, 1)+dx,   ROIs(:, 2)+dy, c, 'FontSize',10);
+    text(ax, POIs(:, 1)+dx,   POIs(:, 2)+dy, c, 'FontSize',10);
     
     %% Plot Path Between ROIs
     X_pos = path(:,1);
