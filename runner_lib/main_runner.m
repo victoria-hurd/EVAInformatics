@@ -28,7 +28,7 @@ function main_runner()
     
     %% Get Map Data Centered on the POIs (Points of Interrest)
     %Get center and radius that encompasses all points automatically with 1.5 scale out   
-    Scale_factor = 1.5;
+    Scale_factor = 1.8;
     center_X = (min(coordVec(:,1)) + max(coordVec(:,1)))/2;
     center_Y = (min(coordVec(:,2)) + max(coordVec(:,2)))/2;    
     width_coords = abs(center_X - min(coordVec(:,1))) * Scale_factor;
