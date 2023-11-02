@@ -184,10 +184,10 @@ latlabel = lat(Y_start_idx:Y_end_idx);
 
  % Fix legend
  % This is a quick way to do this for CDR? Plot nans with the same colors?
-qw{1} = plot(nan, 'Color', [0 0.4470 0.7410],LineWidth=3);
-qw{2} = plot(nan, 'Color', [0.9290 0.6940 0.1250],LineWidth=3);
-qw{3} = plot(nan, 'Color', [0.4940 0.1840 0.5560],LineWidth=3);
-qw{4} = plot(nan, 'Color', [0.4660 0.6740 0.1880],LineWidth=3); % You can add an extra element too
+qw{1} = plot(nan, 'Color', [0 0.4470 0.7410],'LineWidth',3);
+qw{2} = plot(nan, 'Color', [0.9290 0.6940 0.1250],'LineWidth',3);
+qw{3} = plot(nan, 'Color', [0.4940 0.1840 0.5560],'LineWidth',3);
+qw{4} = plot(nan, 'Color', [0.4660 0.6740 0.1880],'LineWidth',3); % You can add an extra element too
 legend("Slope >20\circ","Path 1","Path 2","Path 3","Path 4", "location", "northeast")
 hold off
 
