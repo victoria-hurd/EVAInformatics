@@ -28,8 +28,9 @@ function plot_evelation_path_full_view(X, Y, Z, POIs, path)
     hold(ax, 'on' )
     axis(ax, 'tight');
     axis(ax, 'equal');
-    h = surf(ax, X, Y, Z);
-    set(h,'LineStyle','none')
+    h = surf(ax, X, Y, Z, 'FaceAlpha',0.85);
+    set(h,'LineStyle','none');
+    colormap(ax, summer);
     h.Annotation.LegendInformation.IconDisplayStyle = 'off';
     title(ax, "Apollo 12 Landing Site")
     xlabel(ax, "Longitude [deg]")
@@ -60,12 +61,12 @@ function plot_evelation_path_full_view(X, Y, Z, POIs, path)
     X_path = NaN(N, 1);
     Y_path = NaN(N, 1);
       
-    future_path_plot = plot(ax, X_pos,Y_pos, 'Color', 'blue', 'LineWidth',2);
+    future_path_plot = plot(ax, X_pos,Y_pos, 'Color', 'blue', 'LineWidth',1);
     future_path_plot.XDataSource = 'X_pos';
     future_path_plot.YDataSource = 'Y_pos';
     
-    grayColor = [.5 .5 .5];
-    path_plot = plot(ax, X_path,Y_path, 'Color', grayColor, 'LineWidth',1);
+    pathColor = [.4 .4 .4];
+    path_plot = plot(ax, X_path,Y_path, 'Color', pathColor, 'LineWidth',1);
     path_plot.XDataSource = 'X_path';
     path_plot.YDataSource = 'Y_path';
 
