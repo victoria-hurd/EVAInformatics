@@ -42,7 +42,7 @@ function main()
     [X, Y, Z_elevation, Z_slope] = get_map_data(center_X, center_Y,  width_coords, height_coords);
 
     %% Determining POI Order
-    POIOrder = SolveTSP(coordVec);
+    POIOrder = solve_TSP(coordVec);
     POIs = coordVec(POIOrder,:);
     
     %% Create the Cost Matric

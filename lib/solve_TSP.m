@@ -4,7 +4,7 @@
 % Had to modify since we have defined start and end points. Used answer
 % from here to guide modification: https://stackoverflow.com/questions/36086406/traveling-salesman-tsp-with-set-start-and-end-point
 
-function [ROIOrder] = SolveTSP(coordVec)
+function [ROIOrder] = solve_TSP(coordVec)
 
     % GENERATE STOPS
     % Taking coords of all ROI and extracting lat and lon

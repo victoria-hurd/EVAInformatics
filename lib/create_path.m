@@ -33,10 +33,10 @@ function [path, cost_matrix] = create_path(ROIs, X, Y, Z_slope, cost_matrix)
 %% Iterate over ROI
     paths = struct;
     for i=1:height(startPoses)
-        [newPath,~] = pathPlanner(Z_slope, cost_matrix, startPoses(i,:), goalPoses(i,:));
+        [newPath,~] = path_planner(Z_slope, cost_matrix, startPoses(i,:), goalPoses(i,:));
         paths.(['Path' int2str(i)]) = newPath;
     end
-    [~,planner] = pathPlanner(Z_slope, cost_matrix, startPoses(1,:), goalPoses(1,:));
+    [~,planner] = path_planner(Z_slope, cost_matrix, startPoses(1,:), goalPoses(1,:));
     pathNames = fieldnames(paths);
     
     segments = length(pathNames);

@@ -1,6 +1,6 @@
 % Erin Richardson, Victoria Hurd
 %% Make a cost map 
-function [refPath, costmap] = pathPlanner(Z_slope,costMatrix,startPose,goalPose)
+function [refPath, costmap] = path_planner(Z_slope,costMatrix,startPose,goalPose)
 % Normalize costmatrix from 0 to 1
 costMatrix = normalize(costMatrix,'range');
 % Use normalized costMatrix to make a costmap
