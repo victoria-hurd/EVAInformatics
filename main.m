@@ -9,9 +9,6 @@
 
 function main()
     %% Housekeeping
-    % Determine where your m-file's folder is.
-%     folder = fileparts(which(main)); 
-    % Add that folder plus all subfolders to the path.
     addpath('lib/');
 
     clear; clc;
