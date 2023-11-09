@@ -17,7 +17,7 @@
 
 function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
     %% Plot Z Map
-    fig = uifigure('Name','Path Vizualization');
+    fig = uifigure('Name',strcat("Path Vizualization: ", Z_label));
     g = uigridlayout(fig,[2 3]);
     g.RowHeight = {'1x','fit'};
     g.ColumnWidth = {'1x','fit','1x'};
@@ -30,7 +30,7 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
     hold(ax, 'on' )
     axis(ax, 'tight');
     axis(ax, 'equal');
-    h = surf(ax, X, Y, Z, 'FaceAlpha',0.85);
+    h = surf(ax, X, Y, Z);
     set(h,'LineStyle','none');
     colormap(ax, color);
     h.Annotation.LegendInformation.IconDisplayStyle = 'off';
@@ -44,7 +44,9 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
     view(ax, 2)
     
     %% Plot ROIs
-    scatter(ax, POIs(:, 1),   POIs(:, 2), 14, "filled", "black")
+    Z_poi = ones(length(POIs(:, 1)),1);
+    Z_poi(:) = 1000000;
+    scatter3(ax, POIs(:, 1),   POIs(:, 2), Z_poi, 14, "filled", "black")
     dx = .0002;
     dy = -.0002;
     num_ROIs = length(POIs);
@@ -52,29 +54,30 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
     for i = 1:num_ROIs
     	c{i} = num2str(i);
     end
-    text(ax, POIs(:, 1)+dx,   POIs(:, 2)+dy, c, 'FontSize',10);
+    text(ax, POIs(:, 1)+dx,   POIs(:, 2)+dy, Z_poi, c, 'FontSize',10);
     
     %% Plot Path Between ROIs
     X_pos = path(:,1);
     Y_pos = path(:,2);
     N = length(path);
-    
+    Z_pos = ones(N,1);
+    Z_pos(:) = 1000000;
     % Setup refreshdata plotting 
     X_path = NaN(N, 1);
     Y_path = NaN(N, 1);
       
-    future_path_plot = plot(ax, X_pos,Y_pos, 'Color', 'blue', 'LineWidth',1);
+    future_path_plot = plot3(ax, X_pos, Y_pos, Z_pos , 'Color', 'blue', 'LineWidth',1);
     future_path_plot.XDataSource = 'X_pos';
     future_path_plot.YDataSource = 'Y_pos';
     
     pathColor = [.4 .4 .4];
-    path_plot = plot(ax, X_path,Y_path, 'Color', pathColor, 'LineWidth',1);
+    path_plot = plot3(ax, X_path ,Y_path,Z_pos, 'Color', pathColor, 'LineWidth',2);
     path_plot.XDataSource = 'X_path';
     path_plot.YDataSource = 'Y_path';
 
     X_current = X_pos(1);
     Y_current = Y_pos(1);
-    current_pos = scatter(ax, X_current,Y_current, 'filled', 'blue');
+    current_pos = scatter3(ax, X_current,Y_current, 1000000, 'filled', 'blue');
     current_pos.XDataSource = 'X_current';
     current_pos.YDataSource = 'Y_current';
     
@@ -83,6 +86,8 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
         "ButtonPushedFcn", @(src,event) plotButtonPushed(ax, path, path_plot, future_path_plot, current_pos));
     b.Layout.Row = 2;
     b.Layout.Column = 2;
+    
+    hold(ax, 'off' )
 end
 
 function plotButtonPushed(ax, path, path_plot, future_path_plot, current_pos)  
