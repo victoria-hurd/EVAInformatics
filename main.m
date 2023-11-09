@@ -50,11 +50,11 @@ function main()
     
     %% Plot Moving Along Path
     % TODO: integrate physio monitoring alerts.
-    plot_path_full_view(X, Y, Z_elevation, POIs, path, summer, "Elevation [Meters]");
-    plot_path_full_view(X, Y, Z_slope, POIs, path, parula, "Slope [Degrees]");
+    plot_path_full_view(X, Y, Z_elevation, POIs, path, parula, "Elevation [Meters]");
+    plot_path_full_view(X, Y, Z_slope, POIs, path, summer, "Slope [Degrees]");
     % Create custom colormap for cost matrix
-    gray_red = gray;
-    gray_red(end, :) = [1, 0, 0];
-    plot_path_full_view(X, Y, updated_cost_matrix, POIs, path, gray_red, "Cost Map [Normalized]");
+    cost_matrix_color = flip(gray,1);
+    cost_matrix_color(end, :) = [1, 0, 0];
+    plot_path_full_view(X, Y, updated_cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized]");
     
 end
