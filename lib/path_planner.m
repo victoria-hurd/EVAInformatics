@@ -2,7 +2,7 @@
 %% Make a cost map 
 function [refPath, costmap] = path_planner(Z_slope,costMatrix,startPose,goalPose)
 % Normalize costmatrix from 0 to 1
-costMatrix = normalize(costMatrix,'range');
+costMatrix = flip(normalize(costMatrix,'range'), 1); % TODO: Temp fix for row axis of latitude being flipped
 % Use normalized costMatrix to make a costmap
 costmap = vehicleCostmap(costMatrix);
 % figure

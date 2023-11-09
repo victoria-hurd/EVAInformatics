@@ -19,12 +19,13 @@ function main()
     LEMcoord = [360-23.41930,-3.01381]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
     ALSEPcoord = [360-23.42456,-3.01084]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
     % Numbering for each POI is from https://an.rsl.wustl.edu/apollo/mainnavsp.aspx?tab=map&m=A12
-    coord12004 = [336.569,-3.00706]; % Measured by hand from figure 1 - Middle Crescent Crater
-    coord12055 = [336.573,-3.01233]; % Measured by hand from figure 1 - North Head Crater
-    coord12052 = [336.572,-3.01384]; % Measured by hand from figure 1 - West Head Crater
-    coord12040 = [336.570, -3.01938]; % Measured by hand from figure 1 - NW Bench Crater
+%     coord12004 = [336.569,-3.00706]; % Measured by hand from figure 1 - Middle Crescent Crater
+    % Note these have been re hand measured    
+    coord12055 = [336.573,-3.0115]; % Measured by hand from figure 1 - North Head Crater
+    coord12052 = [336.571,-3.01384]; % Measured by hand from figure 1 - West Head Crater
+    coord12040 = [336.570, -3.018]; % Measured by hand from figure 1 - NW Bench Crater
     coord12024 = [336.565,-3.0205]; % Measured by hand from figure 1 - E Sharp Crater
-    coord12041 = [336.571,-3.02024]; % Measured by hand from figure 1 - E Bench Crater
+    coord12041 = [336.572,-3.02024]; % Measured by hand from figure 1 - E Bench Crater
     coordVec = [coord12055;coord12052;coord12040;coord12024;coord12041];
 
     
@@ -41,8 +42,11 @@ function main()
     %% Determining POI Order
     POIOrder = solve_TSP(coordVec);
     POIs = coordVec(POIOrder,:);
+%     Test1 = [336.573,-3.011]; % Measured by hand from figure 1 - North Head Crater
+%     Test2 = [336.572,-3.016]; % Measured by hand from figure 1 - West Head Crater
+%     POIs = [Test1;Test2;];
     
-    %% Create the Cost Matric
+    %% Create the Cost Matrix
     cost_matrix = create_cost_matrix(X, Y, Z_slope);
     
     %% Get Path between ROIs
@@ -55,6 +59,7 @@ function main()
     % Create custom colormap for cost matrix
     cost_matrix_color = flip(gray,1);
     cost_matrix_color(end, :) = [1, 0, 0];
-    plot_path_full_view(X, Y, updated_cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized]");
+%     plot_path_full_view(X, Y, cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized]");
+    plot_path_full_view(X, Y, updated_cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
     
 end
