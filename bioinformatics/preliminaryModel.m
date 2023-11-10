@@ -12,57 +12,37 @@ clc;
 %% Constants
 g = 1.6; %[m/s2] lunar gravity
 d = 2; %[m] distance in one square
-grid_size = [20 20];
 kc = 3.5; %[] muscle inefficiency factor, concentric
 ke = 2.4; %[] muscle inefficiency factor, eccentric
 
-%% Apollo 14 (?) values
-% slope_val = deg2rad(atand([0 0 0 2.6 -2.7 4.7 10.3 11.3 5.8 3.5 ...
-%     -13.8 -9.4 -3.4 0 4.5 -6.3]/100)); %[rad]
-slope_val = deg2rad(atand((-15:15)/100));
-
-% v_val = [.688 .765 .728 1.56 1.43 2.65 1.71 1.66 1.97...
-%     3.69 2.57 4.8 4.49 5.7 2.64 3.18]*1000/3600; %[m/s]
-v_val = linspace(1,2,100);
-
 %% Variables
-% WHAT IS THE AVERAGE MASS OF APOLLO 12 ASTRONAUT
+% MASS?
 m = 80+34.5; %[kg]
 
-% WHAT ARE THE TYPICAL WALKING SPEEDS OF APOLLO 12 ASTRONAUTS
-%v = 1.36*ones(20); %[m/s] walking speed
-% WHAT ARE THE SLOPES APOLLO 12 ASTRONAUTS WALKED ON
-grade = [8 10 15]; %[%] percent grades of the slope
-%alpha = atan(deg2rad(grade/100)); %[%] slope CHECK FOR TYPICAL SLOPES
-%alpha = deg2rad(11*ones(20));
+% velocity of locomotion
+v = 1.34; %[m/s]
+
+%% From simulation team
+% slope data
+load terrain_output.mat;
+
+% converting to degrees
+alpha = deg2rad(Z_slope);
+
+% size of the contour plot grid
+grid_size = size(alpha);
 
 %% Pre-allocating vectors
 % Work due to level walking
-W_level = zeros(size(grade));
+W_level = zeros(grid_size);
 
 % Work due to sloped (+ or -) walking
-W_slope = zeros(size(grade));
-
-%v = zeros(size(grade));
-
-%alpha = zeros(size(grade));
-
-%% From simulation team
-load terrain_output.mat;
-alpha = deg2rad(Z_slope);
-grid_size = size(alpha);
-
-v = 1.34; %[m/s]
+W_slope = zeros(grid_size);
 
 %% Calculating Work over each square
 
 for i = 1:grid_size(1)
     for j = 1:grid_size(2)
-
-        % Choosing random (feasible) grade
-        %alpha(i,j) = slope_val(randi(length(slope_val)));
-        % Choosing random (feasible) velocity
-        %v = v_val(randi(length(v_val)));
 
         % if level walking
         if alpha(i,j) == 0
@@ -101,7 +81,6 @@ minLevel = min(MC,[],'all');
 maxLevel = max(MC,[],'all');
 avgLevel = mean([minLevel maxLevel]);
 levels = linspace(minLevel,maxLevel,8);
-%levels = [linspace(minLevel,avgLevel,5) linspace(avgLevel+100,maxLevel-300,2)];
 contourf(X,Y,MC,levels);
 colorbar;
 
@@ -122,10 +101,7 @@ xlabel('Velocity, m/s');
 ylabel('Slope, rad');
 zlabel('Metabolic Rate, kcal/hr');
 
-%% Validation: Apollo 12?
-
-%% Knowns/Constants
-
+%% %%%%%%%%%%%%%%%% For Later %%%%%%%%%%%%%%%% %%
 
 %% Validation...
 slope = [0 0 0 2.6 -2.7 4.7 10.3 11.3 5.8 3.5 -13.8 -9.4 -3.4 0 4.5 -6.3];
