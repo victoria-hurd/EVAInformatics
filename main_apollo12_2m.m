@@ -1,6 +1,6 @@
 % Aaron Weinberg, Erin Richardson, Victoria Hurd
 % EVA Informatics
-% Apollo 12 2m Slope Data
+% Apollo 12 2m Slope Data 
 
 % https://pds.lroc.asu.edu/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/APOLLO12/NAC_DTM_APOLLO12_README.TXT
 % - Products are tied to LOLA elevations with RMS error of 1.31 m to 19.0 different LOLA orbit tracks.
