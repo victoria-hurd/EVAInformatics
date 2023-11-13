@@ -24,7 +24,7 @@ costmap.CollisionChecker.InflationRadius = 0;
 %ccConfig = inflationCollisionChecker(vehicleDims);
 %costmap = vehicleCostmap(costmap,'CollisionChecker',ccConfig);
 
-planner = pathPlannerRRT(costmap); %,'MinTurningRadius',0.1); % Includes min turning...
+planner = pathPlannerRRT(costmap,'MinTurningRadius',0.1); % Includes min turning...
 % radius value of _ meters
 
 %% Plan a path

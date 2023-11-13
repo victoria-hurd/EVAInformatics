@@ -4,7 +4,9 @@ function [refPath, costmap] = path_planner(Z_slope,costMatrix,startPose,goalPose
 % Normalize costmatrix from 0 to 1
 costMatrix = flip(normalize(costMatrix,'range'), 1); % TODO: Temp fix for row axis of latitude being flipped
 % Use normalized costMatrix to make a costmap
-costmap = vehicleCostmap(costMatrix);
+%costmap = vehicleCostmap(costMatrix); % Commented out to implement
+% functionality, see below for new costmap definition
+
 % figure
 % hold on 
 % plot(costmap)
@@ -14,11 +16,20 @@ costmap = vehicleCostmap(costMatrix);
 % Set occupancy and free threshold
 % costmap.OccupiedThreshold = double(20/max(Z_slope,[],'all'));
 % costmap.FreeThreshold = double(20/max(Z_slope,[],'all'));
+
+% Rearranged script to add in vehicle dimensions, did not delete anything
+% Vechile dimension definition: must force overhang values
+vdims = vehicleDimensions(0.6,0.7,1.8,'FrontOverhang',0.1, 'RearOverhang',0.1); 
+ccConfig = inflationCollisionChecker(vdims, 'InflationRadius', 0);
+
+% Cost map definition and attributes
+costmap = vehicleCostmap(costMatrix,'CollisionChecker',ccConfig);
+costmap.CollisionChecker.InflationRadius = 0; % Set inflation radius to 0
 costmap.OccupiedThreshold = double(0.99);
 costmap.FreeThreshold = double(0.99);
-% Set inflation radius to 0
-costmap.CollisionChecker.InflationRadius = 0;
-planner = pathPlannerRRT(costmap);
+
+planner = pathPlannerRRT(costmap, 'MinTurningRadius',1); % Includes minimum 
+% turning radius value of 1 meter
 
 %% Plan a path
 refPath = plan(planner,startPose, goalPose);
