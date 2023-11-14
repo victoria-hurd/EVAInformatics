@@ -71,7 +71,7 @@ function main()
     % alert should have 2-4 lines of info per window. Left justified. Is
     % there text included or a criticality indication? 
 
-    % Create custom colormap and Plot Cost Matrix
+    % Plot Interactive Vizualization
 %     plot_path_full_view(X, Y, updated_cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
     
 end
