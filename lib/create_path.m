@@ -16,10 +16,8 @@
 
 function [path, cost_matrix] = create_path(ROIs, X, Y, Z_slope, cost_matrix)
 %% Creating Cost Function
-    % Normalize entire matrix (TODO: fix this as the nomalize function only
-    % works on 1 dimenstion of a matrix at a time, so you see the output
-    % has stripping, need to do a nomalization across both dimensions.)
-    cost_matrix = normalize(cost_matrix,'range');
+    % Normalize entire matrix 
+    cost_matrix = normalize_2_dimensions(cost_matrix);
 
     % Set cells with slopes above 20deg to Occupied
     cost_matrix(Z_slope > 20) = 0.999;
@@ -72,4 +70,14 @@ function [path, cost_matrix] = create_path(ROIs, X, Y, Z_slope, cost_matrix)
 
     path = [X_pos, Y_pos];
 
+end
+
+%% Normalize a 2d matrix 
+% method is range between [0 1] across all dimensions
+% the matlab function normalize() only allws it across a single dimension
+function M = normalize_2_dimensions(M)
+    MIN = min(min(M));
+    MAX = max(max(M));
+    
+    M = (M-MIN) / (MAX - MIN);
 end
