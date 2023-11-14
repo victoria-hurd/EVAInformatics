@@ -51,6 +51,19 @@ function main()
     %% Get Path between ROIs
     [path, updated_cost_matrix] = create_path(POIs, X, Y, Z_slope, cost_matrix);
     
+    %% Plot Simple
+    cost_matrix_color = flip(gray,1) * 0.8;
+    cost_matrix_color(end, :) = [1, 0, 0];
+    plot_path_simple(X, Y, updated_cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
+    
+    % Create custom colormap and Plot Elevation
+    elev_matrix_color = gray;
+    elev_matrix_color = elev_matrix_color*0.8;  
+    plot_path_simple(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
+
+    % Plot Slope
+    plot_path_simple(X, Y, Z_slope, POIs, path, flip(gray,1), "Slope [Degrees]");
+
     %% Plot Moving Along Path
     % TODO: integrate physio monitoring alerts.  show one or the other
     % Blood pressure, Heart Rate, O2 Concentration
@@ -58,18 +71,7 @@ function main()
     % alert should have 2-4 lines of info per window. Left justified. Is
     % there text included or a criticality indication? 
 
-    % Create custom colormap and Plot Elevation
-%     elev_matrix_color = gray;
-%     elev_matrix_color = elev_matrix_color*0.8;  
-%     plot_path_full_view(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
-
-
     % Create custom colormap and Plot Cost Matrix
-    cost_matrix_color = flip(gray,1) * 0.8;
-    cost_matrix_color(end, :) = [1, 0, 0];
-    plot_path_full_view(X, Y, updated_cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
-    
-    % Plot Slope
-%     plot_path_full_view(X, Y, Z_slope, POIs, path, flip(gray,1), "Slope [Degrees]");
+%     plot_path_full_view(X, Y, updated_cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
     
 end
