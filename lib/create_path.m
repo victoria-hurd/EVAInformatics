@@ -16,7 +16,9 @@
 
 function [path, cost_matrix] = create_path(ROIs, X, Y, Z_slope, cost_matrix)
 %% Creating Cost Function
-    % Normalize entire matrix
+    % Normalize entire matrix (TODO: fix this as the nomalize function only
+    % works on 1 dimenstion of a matrix at a time, so you see the output
+    % has stripping, need to do a nomalization across both dimensions.)
     cost_matrix = normalize(cost_matrix,'range');
 
     % Set cells with slopes above 20deg to Occupied
@@ -59,8 +61,14 @@ function [path, cost_matrix] = create_path(ROIs, X, Y, Z_slope, cost_matrix)
         end
     end
 
-    X_pos = interp1(1:length(X(1,:)), X(1,:), X_pos,'linear');
-    Y_pos = interp1(1:length(Y(:,1)), Y(:,1), Y_pos,'linear');
+    X_pos = interp1(1:length(X(1,:)), X(1,:), X_pos,'nearest');
+    Y_pos = interp1(1:length(Y(:,1)), Y(:,1), Y_pos,'nearest');
+    
+    % make sure the end point of the path is on the last ROI
+    if ((X_pos(end)~= ROIs(end,1)) || (Y_pos(end)~= ROIs(end,2)))
+        X_pos = [X_pos; ROIs(end,1)];
+        Y_pos = [Y_pos; ROIs(end,2)];
+    end   
 
     path = [X_pos, Y_pos];
 
