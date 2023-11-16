@@ -22,11 +22,9 @@ function plot_path_simple(X, Y, Z, POIs, path, color, Z_label)
     hold('on' )
     axis('tight');
     axis('equal');
-    % TODO: investigate if grid points should be in the middle of each sqare not the corners
-    h = surf(X, Y, Z);
-    set(h,'LineStyle','none');
+
+    imagesc(X(1,:),Y(:,1),Z);
     colormap(color);
-    h.Annotation.LegendInformation.IconDisplayStyle = 'off';
     title("Apollo 12 Landing Site")
     xlabel("Longitude [deg]")
     ylabel("Latitude [deg]")
@@ -34,7 +32,7 @@ function plot_path_simple(X, Y, Z, POIs, path, color, Z_label)
     c.Label.String = Z_label;
     c.Label.Rotation = 270;
     c.Label.VerticalAlignment = "bottom";
-    view(2)
+    view(2);
     
     %% Plot ROIs
     Z_poi = ones(length(POIs(:, 1)),1);

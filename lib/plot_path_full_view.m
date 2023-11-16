@@ -18,7 +18,7 @@
 function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
     %% Plot Z Map
     fig = uifigure('Name',strcat("Path Vizualization: ", Z_label));
-    fig.Position = [10 50 600 600];
+    fig.Position(2:4) = [100 800 800];
     g = uigridlayout(fig);
     g.RowHeight = {'1x','fit','fit'};
     g.ColumnWidth = {'1x','fit','fit','fit','fit','1x'};
@@ -31,11 +31,8 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
     hold(ax, 'on' )
     axis(ax, 'tight');
     axis(ax, 'equal');
-    % TODO: investigate if grid points should be in the middle of each sqare not the corners
-    h = surf(ax, X, Y, Z);
-    set(h,'LineStyle','none');
+    imagesc(ax, X(1,:),Y(:,1),Z);
     colormap(ax, color);
-    h.Annotation.LegendInformation.IconDisplayStyle = 'off';
     title(ax, "Apollo 12 Landing Site")
     xlabel(ax, "Longitude [deg]")
     ylabel(ax, "Latitude [deg]")
@@ -43,7 +40,6 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
     c.Label.String = Z_label;
     c.Label.Rotation = 270;
     c.Label.VerticalAlignment = "bottom";
-    view(ax, 2)
     
     %% Plot ROIs
     Z_poi = ones(length(POIs(:, 1)),1);
@@ -82,11 +78,12 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
     current_pos.XDataSource = 'X_current';
     current_pos.YDataSource = 'Y_current';
     
-    global pauseS speed reset fullView;
+    global pauseS speed reset fullView north_up;
     pauseS = true;
     speed = 3; % 1 is fastest 4 is slowest
     reset = false;
     fullView = true;
+    north_up = true;
     numFrames = N;
     iter=1;
      
@@ -129,18 +126,23 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
         "ButtonPushedFcn", @(src,event) switchViewsButtonPushed());
     b5.Layout.Row = 3;
     b5.Layout.Column = 2;
-    
+
     b6 = uibutton(g, ...
+        "Text","Toggle North Up", ...
+        "ButtonPushedFcn", @(src,event) toggleNorthButtonPushed());
+    b6.Layout.Row = 3;
+    b6.Layout.Column = 3;
+    b6.Visible = 'off'; % default to off as this only matters in local view
+    
+    b7 = uibutton(g, ...
         "Text","Clear Alert", ...
         "ButtonPushedFcn", @(src,event) clearAlertButtonPushed());
-    b6.Layout.Row = 3;
-    b6.Layout.Column = 4;
+    b7.Layout.Row = 3;
+    b7.Layout.Column = 4;
     
     hold(ax, 'off' )
     local_coords = (6.6e-5)* 25;
     
-    %TODO: put this main loop function in a button function so we can have
-    %multiple plots at once.
     while(1)        
         % here for slow down and speed up
         if speed ==1
@@ -152,34 +154,7 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
         elseif speed==4
             pause(1)
         end
-        
-        if fullView==true
-            xlim(ax,[X(1,1) X(1,end)]);
-            ylim(ax,[Y(end,1) Y(1,1)]);
-        else
-            X_start_idx = interp1(X(1,:),X(1,:),X_current - local_coords,'nearest');
-            X_end_idx = interp1(X(1,:),X(1,:),X_current + local_coords,'nearest');
-            Y_start_idx = interp1(Y(:,1),Y(:,1),Y_current + local_coords,'nearest');
-            Y_end_idx = interp1(Y(:,1),Y(:,1),Y_current - local_coords,'nearest');
-            
-            % Protect for the axes window going out of bounds of our input file
-            if isnan(X_start_idx)
-                X_start_idx = X(1,1);
-            end
-            if isnan(Y_start_idx)
-                Y_start_idx = Y(1,1);
-            end
-            if isnan(X_end_idx)
-                X_end_idx = X(1,end);
-            end
-            if isnan(Y_end_idx)
-                Y_end_idx = Y(end,1);
-            end
-            
-            xlim(ax,[X_start_idx X_end_idx]);
-            ylim(ax,[Y_end_idx Y_start_idx]);
-        end
-        
+                
         % If frame is finished, break
         if iter>numFrames
             reset = true;
@@ -225,10 +200,67 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
             X_pos(iter - 1) = NaN;
             Y_pos(iter - 1) = NaN;
         end
-        refreshdata(path_plot, 'caller');
-        refreshdata(future_path_plot, 'caller');
-        refreshdata(current_pos, 'caller');
-        drawnow;
+        
+        if fullView==true            
+            if ishandle(ax)
+                b6.Visible = 'off';
+                xlim(ax,[X(1,1) X(1,end)]);
+                ylim(ax,[Y(end,1) Y(1,1)]);
+                view(ax, 0, 90); 
+                axis(ax, 'on');
+            end
+        else            
+            X_start_idx = interp1(X(1,:),X(1,:),X_current - local_coords,'nearest');
+            X_end_idx = interp1(X(1,:),X(1,:),X_current + local_coords,'nearest');
+            Y_start_idx = interp1(Y(:,1),Y(:,1),Y_current + local_coords,'nearest');
+            Y_end_idx = interp1(Y(:,1),Y(:,1),Y_current - local_coords,'nearest');
+            
+            % Protect for the axes window going out of bounds of our input file
+            if isnan(X_start_idx)
+                X_start_idx = X(1,1);
+            end
+            if isnan(Y_start_idx)
+                Y_start_idx = Y(1,1);
+            end
+            if isnan(X_end_idx)
+                X_end_idx = X(1,end);
+            end
+            if isnan(Y_end_idx)
+                Y_end_idx = Y(end,1);
+            end
+            
+            if ishandle(ax)
+                b6.Visible = 'on';
+                xlim(ax,[X_start_idx X_end_idx]);
+                ylim(ax,[Y_end_idx Y_start_idx]);
+
+                if (north_up)
+                    view(ax, 0, 90);
+                    axis(ax, 'on');                    
+                else
+                    [view_angle, ~] = view(ax);            
+                    if (iter < numFrames)
+                        view_angle = atan2d(Y_pos(iter+1)- Y_current, X_pos(iter+1)- X_current) - 90;
+
+                    end
+                    view(ax, view_angle, 90); 
+                    axis(ax, 'off');
+                end    
+            end    
+  
+        end        
+        
+        if ishandle(ax)
+            refreshdata(path_plot, 'caller');
+            refreshdata(future_path_plot, 'caller');
+            refreshdata(current_pos, 'caller');
+            drawnow;
+        end
+        
+        %break out of loop if figure closed
+        if ~ishandle(ax)
+            break;
+        end
         
         iter = iter + 1;  
     end
@@ -282,6 +314,15 @@ function switchViewsButtonPushed()
     end
 end
 
+function toggleNorthButtonPushed()  
+    global north_up
+    if north_up==true
+         north_up=false;
+    else
+         north_up=true;
+    end
+end
+
 function clearAlertButtonPushed()  
-     % TODO:
+     % TODO: Implement Alert Clear
 end

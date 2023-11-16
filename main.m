@@ -72,6 +72,6 @@ function main()
     % there text included or a criticality indication? 
 
     % Plot Interactive Vizualization
-%     plot_path_full_view(X, Y, updated_cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
+%     plot_path_full_view(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
     
 end
