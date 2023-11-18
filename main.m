@@ -16,14 +16,14 @@ function main()
     close(all_fig)
  
     %% Regions of Interest (ROIs)
-%     coord12055 = [336.573,-3.0115]; % Measured by hand from figure 1 - North Head Crater
-%     coord12052 = [336.571,-3.01384]; % Measured by hand from figure 1 - West Head Crater
-%     coord12040 = [336.570, -3.018]; % Measured by hand from figure 1 - NW Bench Crater
-%     coord12024 = [336.565,-3.0205]; % Measured by hand from figure 1 - E Sharp Crater
-%     coord12041 = [336.572,-3.02024]; % Measured by hand from figure 1 - E Bench Crater
-%     coordVec = [coord12055;coord12052;coord12040;coord12024;coord12041];
+    coord12055 = [336.573,-3.0115]; % Measured by hand from figure 1 - North Head Crater
+    coord12052 = [336.571,-3.01384]; % Measured by hand from figure 1 - West Head Crater
+    coord12040 = [336.570, -3.018]; % Measured by hand from figure 1 - NW Bench Crater
+    coord12024 = [336.565,-3.0205]; % Measured by hand from figure 1 - E Sharp Crater
+    coord12041 = [336.572,-3.02024]; % Measured by hand from figure 1 - E Bench Crater
+    coordVec = [coord12055;coord12052;coord12040;coord12024;coord12041];
     % User input for selected points
-    coordVec = user_fed_POI();
+%     coordVec = user_fed_POI();
     
     %% Get Map Data Centered on the POIs (Points of Interrest)
 %     Get center and radius that encompasses all points automatically with 1.5 scale out   
@@ -65,13 +65,6 @@ function main()
     plot_path_simple(X, Y, Z_slope, POIs, path, flip(gray,1), "Slope [Degrees]");
 
     %% Plot Moving Along Path
-    % TODO: integrate physio monitoring alerts.  show one or the other
-    % Blood pressure, Heart Rate, O2 Concentration
-    % O2 levels, suit pressure, suit temp, suit battery (if available)
-    % alert should have 2-4 lines of info per window. Left justified. Is
-    % there text included or a criticality indication? 
-
     % Plot Interactive Vizualization
-%     plot_path_full_view(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
-    
+    plot_path_full_view(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
 end
