@@ -96,7 +96,7 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
     X_current = X_pos(1);
     Y_current = Y_pos(1);   
     
-        
+    %% Setup UI Buttons    
     b1 = uibutton(g, ...
         "Text","Reset", ...
         "ButtonPushedFcn", @(src,event) resetButtonPushed());
@@ -143,6 +143,7 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
     hold(ax, 'off' )
     local_coords = (6.6e-5)* 25;
     
+    %% Main loop to step through path
     while(1)        
         % here for slow down and speed up
         if speed ==1
@@ -182,7 +183,7 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
         
         end
         
-        % Here for pause and resume
+        % pause and resume
         if pauseS == true
             while(1)
                 pause(0.001);
@@ -201,6 +202,16 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
             Y_pos(iter - 1) = NaN;
         end
         
+        % Physio Monitoring
+       [heartrate, o2_consumption, co2_produciton, water_remaining] = get_current_vitals_and_consumables(X_current, Y_current);
+       heartrate_criticality_level = monitor_heartrate(heartrate); 
+       o2_consumption_criticality_level = monitor_o2_consumption(o2_consumption); 
+       co2_produciton_criticality_level = monitor_co2_produciton(co2_produciton); 
+       water_remaining_criticality_level = monitor_water_remaining(water_remaining);
+       
+       % TODO: [Viz team] Display alerts based on criticality levels
+       
+       % Update and refresh view
         if fullView==true            
             if ishandle(ax)
                 b6.Visible = 'off';
@@ -250,6 +261,7 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
   
         end        
         
+        %refresh figure and draw
         if ishandle(ax)
             refreshdata(path_plot, 'caller');
             refreshdata(future_path_plot, 'caller');
@@ -267,8 +279,9 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
     
        
     
- end
+end
 
+ %% The following defines the UI Buttons
 function playPauseButtonPushed()  
     global pauseS
     if pauseS==true
