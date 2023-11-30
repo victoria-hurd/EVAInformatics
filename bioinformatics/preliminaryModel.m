@@ -3,17 +3,20 @@
 % Date: 4 October 2023
 % Purpose: 
 
-%close all;
+close all;
 clear;
 clc;
 
 %% %%%%%%%%%%%%%%%%%%%%%%% Santee's Model (2001) %%%%%%%%%%%%%%%%%%%%%%% %%
 
 %% Constants
-g = 1.6; %[m/s2] lunar gravity
+g = 1.62; %[m/s2] lunar gravity
 d = 2; %[m] distance in one square
 kc = 3.5; %[] muscle inefficiency factor, concentric
 ke = 2.4; %[] muscle inefficiency factor, eccentric
+
+%% Conversions
+J2kcal = 0.000239; % multiply J by J2kcal to get kcal
 
 %% Variables
 % MASS?
@@ -26,7 +29,7 @@ v = 1.34; %[m/s]
 % slope data
 load terrain_output.mat;
 
-% converting to degrees
+% converting to radians
 alpha = deg2rad(Z_slope);
 
 % size of the contour plot grid
@@ -48,11 +51,11 @@ for i = 1:grid_size(1)
         if alpha(i,j) == 0
             W_slope(i,j) = 0;
 
-        % if inclined walking: W=PE=k*mgh
+        % if inclined walking: W=PE=kc*mgh
         elseif alpha(i,j) >= 0
             W_slope(i,j) = kc*m*g*v*sin(alpha(i,j));
 
-        % if declined walking: W=k*mgh*(correction factor due to energy
+        % if declined walking: W=ke*mgh*(correction factor due to energy
         % being absorbed in muscles and in the joints)
         elseif alpha(i,j) <= 0
             W_slope(i,j) = ke*m*g*v*sin(alpha(i,j))*0.3^(abs(alpha(i,j))/7.65);
@@ -66,52 +69,155 @@ end
 
 %% Metabolic Rate, USE THIS IN PATH PLANNING!!!!
 MR = W_level + W_slope; %[J/s]
-MR = MR/4184; %[kcal/s] <3 English <3 units <3
-
-%% Time over Each Square
-t = sqrt((d^2+d^2))/v; %[s] time, constant for now
-
-%% Metabolic Cost Per Square
-MC = MR*t; %[kcal] SOMETHIN IS WRONG WITH THIS CALCULATION RN.... GOTTA FIGURE IT OUT
+MR = MR*J2kcal*3600; %[kcal/hr]
 
 %% Plotting Metabolic Rate
 figure(1);
 hold on;
-minLevel = min(MC,[],'all');
-maxLevel = max(MC,[],'all');
+minLevel = min(MR,[],'all');
+maxLevel = max(MR,[],'all');
 avgLevel = mean([minLevel maxLevel]);
 levels = linspace(minLevel,maxLevel,8);
-contourf(X,Y,MC,levels);
+contourf(X,Y,MR,levels);
 colorbar;
 
+%% %%%%%%%%%%%%%%%% Testing Model %%%%%%%%%%%%%%%% %%
+
+%% Data from Apollo 14 EVA-1
+% net slope percent
+slope_14EVA1 = [0 0 0];
+% velocity of locomotion, m/s
+v_14EVA1 = [.688 .765 .728]*1000/3600;
+% metabolic rates of CDR and LMP, kcal/hr
+MR1_14EVA1_ac = [248 321 285];
+MR2_14EVA1_ac = [277 262 270];
+
+%% Data from Apollo 14 EVA-2
+% net slope percent
+slope_14EVA2= atan([2.6 -2.7 4.7 10.3 11.3 5.8 3.5 -13.8 -9.4 -3.4 0 4.5 -6.3]/100);
+% velocity of locomotion, m/s
+v_14EVA2 = [1.56 1.43 2.65 1.71 1.66 1.97 3.69 2.57 4.8 4.49 5.7 2.64 3.18]*1000/3600;
+% metabolic rates of CDR and LMP, kcal/hr
+MR1_14EVA2_ac = [142 192 241 343 376 456 244 238 314 323 282 268 305];
+MR2_14EVA2_ac = [209 212 273 291 315 520 323 266 337 367 391 379 393];
+
+%% Mass
+m_CDR = 76.4; %[kg] mass of CDR
+m_LMP = 80.1;% [kg] mass of LMP
+m_s = 47.8; %[kg] mass of spacesuit
+m_CDR = m_CDR + m_s;
+m_LMP = m_LMP + m_s;
+
+%% Santee's Model - EVA 1
+
+W1_slope_14EVA1 = zeros(1,length(slope_14EVA1));
+W1_level_14EVA1 = zeros(1,length(slope_14EVA1));
+W2_slope_14EVA1 = zeros(1,length(slope_14EVA1));
+W2_level_14EVA1 = zeros(1,length(slope_14EVA1));
+
+for i = 1:length(slope_14EVA1)
+    % if level walking
+    if slope_14EVA1(i) == 0
+        W1_slope_14EVA1(i) = 0;
+        W2_slope_14EVA1(i) = 0;
+    
+    % if inclined walking: W=PE=kc*mgh
+    elseif slope_14EVA1(i) >= 0
+        W1_slope_14EVA1(i) = kc*m_CDR*g*v_14EVA1(i)*sin(slope_14EVA1(i));
+        W2_slope_14EVA1(i) = kc*m_LMP*g*v_14EVA1(i)*sin(slope_14EVA1(i));
+        
+    % if declined walking: W=ke*mgh*(correction factor due to energy
+    % being absorbed in muscles and in the joints)
+    elseif slope_14EVA1(i) <= 0
+        W1_slope_14EVA1(i) = ke*m_CDR*g*v*sin(slope_14EVA1(i))*0.3^(abs(slope_14EVA1(i))/7.65);
+        W2_slope_14EVA1(i) = ke*m_LMP*g*v*sin(slope_14EVA1(i))*0.3^(abs(slope_14EVA1(i))/7.65);
+    end
+    
+    % level walking contribution
+    W1_level_14EVA1(i) = (3.28*m_CDR + 71.1) * (0.661*v_14EVA1(i)*cos(slope_14EVA1(i)) + 0.115);
+    W2_level_14EVA1(i) = (3.28*m_LMP + 71.1) * (0.661*v_14EVA1(i)*cos(slope_14EVA1(i)) + 0.115);
+end
+
+MR1_14EVA1 = W1_level_14EVA1 + W1_slope_14EVA1;
+MR1_14EVA1 = MR1_14EVA1*J2kcal*3600; %[kcal/hr]
+MR2_14EVA1 = W2_level_14EVA1 + W2_slope_14EVA1;
+MR2_14EVA1 = MR2_14EVA1*J2kcal*3600; %[kcal/hr]
+
+%% Santee's Model - EVA 2
+
+W1_slope_14EVA2 = zeros(1,length(slope_14EVA2));
+W1_level_14EVA2 = zeros(1,length(slope_14EVA2));
+W2_slope_14EVA2 = zeros(1,length(slope_14EVA2));
+W2_level_14EVA2 = zeros(1,length(slope_14EVA2));
+
+for i = 1:length(slope_14EVA2)
+    % if level walking
+    if slope_14EVA2(i) == 0
+        W1_slope_14EVA2(i) = 0;
+        W2_slope_14EVA2(i) = 0;
+
+    % if inclined walking: W=PE=kc*mgh
+    elseif slope_14EVA2(i) >= 0
+        W1_slope_14EVA2(i) = kc*m_CDR*g*v_14EVA2(i)*sin(slope_14EVA2(i));
+        W2_slope_14EVA2(i) = kc*m_LMP*g*v_14EVA2(i)*sin(slope_14EVA2(i));
+
+    % if declined walking: W=ke*mgh*(correction factor due to energy
+    % being absorbed in muscles and in the joints)
+    elseif slope_14EVA2(i) <= 0
+        W1_slope_14EVA2(i) = ke*m_CDR*g*v*sin(slope_14EVA2(i))*0.3^(abs(slope_14EVA2(i))/7.65);
+        W2_slope_14EVA2(i) = ke*m_LMP*g*v*sin(slope_14EVA2(i))*0.3^(abs(slope_14EVA2(i))/7.65);
+    end
+    
+    % level walking contribution
+    W1_level_14EVA2(i) = (3.28*m_CDR + 71.1) * (0.661*v_14EVA2(i)*cos(slope_14EVA2(i)) + 0.115);
+    W2_level_14EVA2(i) = (3.28*m_LMP + 71.1) * (0.661*v_14EVA2(i)*cos(slope_14EVA2(i)) + 0.115);
+end
+
+MR1_14EVA2 = W1_level_14EVA2 + W1_slope_14EVA2;
+MR1_14EVA2 = MR1_14EVA2*J2kcal*3600; %[kcal/hr]
+MR2_14EVA2 = W2_level_14EVA2 + W2_slope_14EVA2;
+MR2_14EVA2 = MR2_14EVA2*J2kcal*3600; %[kcal/hr]
+
+%% Plotting Apollo 14 Modeled vs. Actual
 figure(2);
-subplot(2,1,1);
 hold on;
-plot(alpha(:),MR(:),'o');
-subplot(2,1,2); 
-hold on;
-plot(v(:),MR(:),'o');
+grid on;
+plot(MR1_14EVA1,'Color','#A2142F','LineWidth',2);
+plot(MR2_14EVA1,'Color','#7E2F8E','LineWidth',2);
+plot(MR1_14EVA1_ac,'x','Color','#A2142F','MarkerSize',12,'LineWidth',2)
+plot(MR2_14EVA1_ac,'x','Color','#7E2F8E','MarkerSize',12,'LineWidth',2)
+legend('Modeled CDR','Modeled, LMP','Measured CDR','Measured LMP')
+ylabel('MR, kcal/hr');
+title('Metabolic Rates on Apollo 14 EVA-1');
+hold off;
 
 figure(3);
 hold on;
 grid on;
-surf(v(:),alpha(:),MR);
-colorbar;
-xlabel('Velocity, m/s');
-ylabel('Slope, rad');
-zlabel('Metabolic Rate, kcal/hr');
+plot(MR1_14EVA2,'Color','#A2142F','LineWidth',2);
+plot(MR2_14EVA2,'Color','#7E2F8E','LineWidth',2);
+plot(MR1_14EVA2_ac,'x','Color','#A2142F','MarkerSize',12,'LineWidth',2)
+plot(MR2_14EVA2_ac,'x','Color','#7E2F8E','MarkerSize',12,'LineWidth',2)
+legend('Modeled CDR','Modeled LMP','Measured CDR','Measured LMP')
+ylabel('MR, kcal/hr');
+title('Metabolic Rates on Apollo 14 EVA-2');
+hold off;
 
-%% %%%%%%%%%%%%%%%% For Later %%%%%%%%%%%%%%%% %%
+%% Calculating Error
+err1_14EVA1 = abs(MR1_14EVA1-MR1_14EVA1_ac)./MR1_14EVA1_ac*100;
+err2_14EVA1 = abs(MR1_14EVA1-MR2_14EVA1_ac)./MR2_14EVA1_ac*100;
 
-%% Validation...
-slope = [0 0 0 2.6 -2.7 4.7 10.3 11.3 5.8 3.5 -13.8 -9.4 -3.4 0 4.5 -6.3];
-v = [.688 .765 .728 1.56 1.43 2.65 1.71 1.66 1.97 3.69 2.57 4.8 4.49 5.7 2.64 3.18];
-MR1 = [248 321 285 142 192 241 343 376 456 244 238 314 323 282 268 305];
-MR2 = [277 262 270 209 212 273 291 315 520 323 266 337 367 391 379 393];
+err1_14EVA2 = abs(MR1_14EVA2-MR1_14EVA2_ac)./MR1_14EVA2_ac*100;
+err2_14EVA2 = abs(MR1_14EVA2-MR2_14EVA2_ac)./MR2_14EVA2_ac*100;
 
-%% Characteristics of Astronaut
-h = 179.1; %[cm] average height
-bm = 80.7; %[kg] average body mass
-age = 44.8; %[yr] average age
-VO2pk = 50.8; %[mL/min/kg] average peak rage of oxygen consumption
-l = 104; %[cm] average leg length
+figure(4);
+hold on
+grid on;
+plot(err1_14EVA1,'Color','#A2142F','LineWidth',2);
+plot(err2_14EVA1,'Color','#7E2F8E','LineWidth',2);
+plot(err1_14EVA2,'Color','#0072BD','LineWidth',2);
+plot(err2_14EVA2,'Color','#EDB120','LineWidth',2);
+ylabel('Percent Error');
+title('Percent Error of Model Estimation');
+legend('EVA-1 CDR','EVA-1 LMP','EVA-2 CDR','EVA-2 LMP');
+hold off;
