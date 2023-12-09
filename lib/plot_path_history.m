@@ -32,21 +32,29 @@ function plot_path_history(X, Y, Z, POIs, pathHistory, endPoseHistory, color, Z_
     text(POIs(:, 1)+dx,   POIs(:, 2)+dy, Z_poi, c, 'FontSize',10);
         
     %% Plot Path Between ROIs
+    % Add index of final end point, which is the end of the last path
     endPoseHistory = [endPoseHistory;length(pathHistory{end})]
 
+    % Iterate over all planned paths
     for i = 1:length(pathHistory)
+
+        % Access x coordinates of path i
         X_pos = pathHistory{i}(:,1);
+
+        % Access y coordinates of path i
         Y_pos = pathHistory{i}(:,2);
+
+        % Make arbitrary list of Z coordinates for plot
         N = length(X_pos);
         Z_pos = ones(N,1);
         Z_pos(:) = 1000000;
-        % Setup refresh data plotting 
-        X_path = NaN(N, 1);
-        Y_path = NaN(N, 1);
         
-        future_path_plot = plot3(X_pos(1:endPoseHistory(i)), Y_pos(1:endPoseHistory(i)), Z_pos(1:endPoseHistory(i)), 'LineWidth',2);
-        future_path_plot.XDataSource = 'X_pos';
-        future_path_plot.YDataSource = 'Y_pos';
+        % Use this line if you want to plot full paths
+        %plot3(X_pos, Y_pos, Z_pos, 'LineWidth',2);
+
+        % Use this if you want to plot final path taken
+        plot3(X_pos(1:endPoseHistory(i)), Y_pos(1:endPoseHistory(i)), Z_pos(1:endPoseHistory(i)), 'LineWidth',2);
+
     end
 
 end
