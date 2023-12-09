@@ -10,7 +10,7 @@
 % Outputs
 %    cost_matrix = floating point values of the same dimensions as Z_slope
 
-function cost_matrix = create_cost_matrix(X, Y, Z_slope)
+function cost_matrix = create_cost_matrix(X, Y, Z_slope, penalty)
 %% %%%%%%%%%%%%%%%%%%%%%%% Santee's Model (2001) %%%%%%%%%%%%%%%%%%%%%%% %%
 
     %% Constants
@@ -89,7 +89,7 @@ function cost_matrix = create_cost_matrix(X, Y, Z_slope)
     end
 
     %% Metabolic Rate, USE THIS IN PATH PLANNING!!!!
-    MR = W_level + W_slope; %[J/s]
+    MR = W_level + W_slope*penalty; %[J/s]
     MR = MR/4184; %[kcal/s] <3 English <3 units <3
 
     %% Time over Each Square

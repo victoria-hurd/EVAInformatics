@@ -49,9 +49,9 @@ o2_med = 1.43; % medium intensity activity [g/min]
 o2_hi = 3.99; % high intensity activity [g/min]
 
 % define co2 production averages based on Ewart et al
-o2_lo = 0.69; % low intensity activity [g/min]
-o2_med = 1.89; % medium intensity activity [g/min]
-o2_hi = 5.22; % high intensity activity [g/min]
+co2_lo = 0.69; % low intensity activity [g/min]
+co2_med = 1.89; % medium intensity activity [g/min]
+co2_hi = 5.22; % high intensity activity [g/min]
 
 %% Fill in matrix with averages modified by Gaussian noise
 for i=1:length(i_1) % low level metabolic rate
