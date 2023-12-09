@@ -44,13 +44,62 @@ function main()
     % Solve Traveling Salesman Problem
     POIOrder = solve_TSP(coordVec);
     POIs = coordVec(POIOrder,:);
+   
     
-    %% Create the Cost Matrix
-    cost_matrix = create_cost_matrix(X, Y, Z_slope);
+    %% Walkthrough.m
+    replanFlag = 1; 
+    penalty = 1;
+    pathHistory = {};
+    endPoseHistory = [];
+    while replanFlag == 1
+        % Create the Cost Matrix
+        cost_matrix = create_cost_matrix(X, Y, Z_slope, penalty);
+
+        if penalty ~= 1
+            % Update path history
+            pathHistory{end+1} = path;
+            endPoseHistory = [endPoseHistory;endPose];
+            % Update POI list
     
-    %% Get Path between ROIs
-    [path, pathIdx, updated_cost_matrix] = create_path(POIs, X, Y, Z_slope, cost_matrix);
+            % Find index of where we made it to
+            endPoseX = path(:,1) == endPose(1);
+            endPoseY = path(:,2) == endPose(2);
+            endPoseIdx = find(and(endPoseX,endPoseY));
     
+            % Check what ROIs we've visited
+            POIcounter = 1;
+            while 1
+                % Convert POIs
+
+                poiX = path(:,1) == POIs(POIcounter,1);
+                poiY = path(:,2) == POIs(POIcounter,2);
+                poiIdx = find(and(poiX,poiY));
+                
+                if poiIdx > endPoseIdx
+                    POIs = [endPose;POIs(POIcounter:end,:)];
+                    break
+                else
+                    % add to counter
+                    POIcounter = POIcounter+1;
+                end
+            end
+        end
+
+        % Get Path between ROIs
+
+        [path, pathIdx, updated_cost_matrix] = create_path(POIs, X, Y, Z_slope, cost_matrix);
+        [replanFlag,endPose] = walkthrough(path, pathIdx,updated_cost_matrix);
+        penalty = penalty + 0.01;
+    end
+
+    % Update path history
+    pathHistory{end+1} = path;
+
+    %% Path History Plot
+    elev_matrix_color = gray;
+    elev_matrix_color = elev_matrix_color*0.8; 
+    plot_path_history(X, Y, Z_elevation, POIs, pathHistory, endPoseHistory, elev_matrix_color, "Elevation [Meters]");
+
     %% Plot Simple
     cost_matrix_color = flip(gray,1) * 0.8;
     cost_matrix_color(end, :) = [1, 0, 0];
