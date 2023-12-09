@@ -81,7 +81,14 @@ levels = linspace(minLevel,maxLevel,8);
 contourf(X,Y,MR,levels);
 colorbar;
 
+
 %% %%%%%%%%%%%%%%%% Testing Model %%%%%%%%%%%%%%%% %%
+%% Mass
+m_CDR = 76.4; %[kg] mass of CDR
+m_LMP = 80.1;% [kg] mass of LMP
+% m_s = 47.8; %[kg] mass of spacesuit
+% m_CDR = m_CDR + m_s;
+% m_LMP = m_LMP + m_s;
 
 %% Data from Apollo 14 EVA-1
 % net slope percent
@@ -91,6 +98,84 @@ v_14EVA1 = [.688 .765 .728]*1000/3600;
 % metabolic rates of CDR and LMP, kcal/hr
 MR1_14EVA1_ac = [248 321 285];
 MR2_14EVA1_ac = [277 262 270];
+
+%% Santee's Model - EVA 1
+
+W1_slope_14EVA1 = zeros(1,length(slope_14EVA1));
+W1_level_14EVA1 = zeros(1,length(slope_14EVA1));
+W2_slope_14EVA1 = zeros(1,length(slope_14EVA1));
+W2_level_14EVA1 = zeros(1,length(slope_14EVA1));
+
+for i = 1:length(slope_14EVA1)
+    % if level walking
+    if slope_14EVA1(i) == 0
+        W1_slope_14EVA1(i) = 0;
+        W2_slope_14EVA1(i) = 0;
+
+    % if inclined walking: W=PE=kc*mgh
+    elseif slope_14EVA1(i) > 0
+        W1_slope_14EVA1(i) = kc*m_CDR*g*v_14EVA1(i)*sin(slope_14EVA1(i));
+        W2_slope_14EVA1(i) = kc*m_LMP*g*v_14EVA1(i)*sin(slope_14EVA1(i));
+
+    % if declined walking: W=ke*mgh*(correction factor due to energy
+    % being absorbed in muscles and in the joints)
+    elseif slope_14EVA1(i) < 0
+        W1_slope_14EVA1(i) = ke*m_CDR*g*v_14EVA1*sin(slope_14EVA1(i))*0.3^(slope_14EVA1(i)/7.65);
+        W2_slope_14EVA1(i) = ke*m_LMP*g*v_14EVA1*sin(slope_14EVA1(i))*0.3^(slope_14EVA1(i)/7.65);
+    end
+
+    % level walking contribution
+    W1_level_14EVA1(i) = (3.28*m_CDR + 71.1) * (0.661*v_14EVA1(i)*cos(slope_14EVA1(i)) + 0.115);
+    W2_level_14EVA1(i) = (3.28*m_LMP + 71.1) * (0.661*v_14EVA1(i)*cos(slope_14EVA1(i)) + 0.115);
+end
+
+MR1_14EVA1 = W1_level_14EVA1 + W1_slope_14EVA1;
+MR1_14EVA1 = MR1_14EVA1*J2kcal*3600; %[kcal/hr]
+MR2_14EVA1 = W2_level_14EVA1 + W2_slope_14EVA1;
+MR2_14EVA1 = MR2_14EVA1*J2kcal*3600; %[kcal/hr]
+
+%% Correction Factor
+% Norcross et al. (2010) level ambulation
+% 12.3% and 21.2% so total 33.5%
+MR1_14EVA1 = MR1_14EVA1 + MR1_14EVA1*0.4 + 100;
+MR2_14EVA1 = MR2_14EVA1 + MR2_14EVA1*0.4 + 100;
+
+%% Plotting Apollo 14 EVA 1 Modeled vs. Actual
+figure(2);
+hold on;
+sgtitle('Metabolic Rates on Apollo 14 EVA-1');
+
+subplot(1,2,1);
+hold on;
+grid minor;
+plot(MR1_14EVA1,'o','Color','k','LineWidth',2);
+plot(MR1_14EVA1_ac,'x','Color','#A2142F','MarkerSize',12,'LineWidth',2);
+ylabel('MR, kcal/hr');
+title('CDR');
+hold off;
+
+subplot(1,2,2);
+hold on;
+grid minor;
+plot(MR2_14EVA1,'o','Color','k','LineWidth',2);
+plot(MR2_14EVA1_ac,'x','Color','#7E2F8E','MarkerSize',12,'LineWidth',2)
+ylabel('MR, kcal/hr');
+title('LMP')
+hold off;
+
+%% Error EVA-1
+err1_14EVA1 = abs(MR1_14EVA1-MR1_14EVA1_ac)./MR1_14EVA1_ac*100;
+err2_14EVA1 = abs(MR1_14EVA1-MR2_14EVA1_ac)./MR2_14EVA1_ac*100;
+
+figure(9);
+hold on
+grid on;
+plot(err1_14EVA1,'o','Color','#A2142F','LineWidth',2);
+plot(err2_14EVA1,'o','Color','#7E2F8E','LineWidth',2);
+ylabel('Percent Error');
+title('Percent Error of Model Estimation');
+ylim([0 100])
+hold off;
 
 %% Data from Apollo 14 EVA-2
 % net slope percent
@@ -108,41 +193,6 @@ m_s = 47.8; %[kg] mass of spacesuit
 m_CDR = m_CDR + m_s;
 m_LMP = m_LMP + m_s;
 
-%% Santee's Model - EVA 1
-
-W1_slope_14EVA1 = zeros(1,length(slope_14EVA1));
-W1_level_14EVA1 = zeros(1,length(slope_14EVA1));
-W2_slope_14EVA1 = zeros(1,length(slope_14EVA1));
-W2_level_14EVA1 = zeros(1,length(slope_14EVA1));
-
-for i = 1:length(slope_14EVA1)
-    % if level walking
-    if slope_14EVA1(i) == 0
-        W1_slope_14EVA1(i) = 0;
-        W2_slope_14EVA1(i) = 0;
-    
-    % if inclined walking: W=PE=kc*mgh
-    elseif slope_14EVA1(i) >= 0
-        W1_slope_14EVA1(i) = kc*m_CDR*g*v_14EVA1(i)*sin(slope_14EVA1(i));
-        W2_slope_14EVA1(i) = kc*m_LMP*g*v_14EVA1(i)*sin(slope_14EVA1(i));
-        
-    % if declined walking: W=ke*mgh*(correction factor due to energy
-    % being absorbed in muscles and in the joints)
-    elseif slope_14EVA1(i) <= 0
-        W1_slope_14EVA1(i) = ke*m_CDR*g*v*sin(slope_14EVA1(i))*0.3^(abs(slope_14EVA1(i))/7.65);
-        W2_slope_14EVA1(i) = ke*m_LMP*g*v*sin(slope_14EVA1(i))*0.3^(abs(slope_14EVA1(i))/7.65);
-    end
-    
-    % level walking contribution
-    W1_level_14EVA1(i) = (3.28*m_CDR + 71.1) * (0.661*v_14EVA1(i)*cos(slope_14EVA1(i)) + 0.115);
-    W2_level_14EVA1(i) = (3.28*m_LMP + 71.1) * (0.661*v_14EVA1(i)*cos(slope_14EVA1(i)) + 0.115);
-end
-
-MR1_14EVA1 = W1_level_14EVA1 + W1_slope_14EVA1;
-MR1_14EVA1 = MR1_14EVA1*J2kcal*3600; %[kcal/hr]
-MR2_14EVA1 = W2_level_14EVA1 + W2_slope_14EVA1;
-MR2_14EVA1 = MR2_14EVA1*J2kcal*3600; %[kcal/hr]
-
 %% Santee's Model - EVA 2
 
 W1_slope_14EVA2 = zeros(1,length(slope_14EVA2));
@@ -157,15 +207,15 @@ for i = 1:length(slope_14EVA2)
         W2_slope_14EVA2(i) = 0;
 
     % if inclined walking: W=PE=kc*mgh
-    elseif slope_14EVA2(i) >= 0
+    elseif slope_14EVA2(i) > 0
         W1_slope_14EVA2(i) = kc*m_CDR*g*v_14EVA2(i)*sin(slope_14EVA2(i));
         W2_slope_14EVA2(i) = kc*m_LMP*g*v_14EVA2(i)*sin(slope_14EVA2(i));
 
     % if declined walking: W=ke*mgh*(correction factor due to energy
     % being absorbed in muscles and in the joints)
-    elseif slope_14EVA2(i) <= 0
-        W1_slope_14EVA2(i) = ke*m_CDR*g*v*sin(slope_14EVA2(i))*0.3^(abs(slope_14EVA2(i))/7.65);
-        W2_slope_14EVA2(i) = ke*m_LMP*g*v*sin(slope_14EVA2(i))*0.3^(abs(slope_14EVA2(i))/7.65);
+    elseif slope_14EVA2(i) < 0
+        W1_slope_14EVA2(i) = ke*m_CDR*g*v_14EVA2(i)*sin(slope_14EVA2(i))*0.3^(slope_14EVA2(i)/7.65);
+        W2_slope_14EVA2(i) = ke*m_LMP*g*v_14EVA2(i)*sin(slope_14EVA2(i))*0.3^(slope_14EVA2(i)/7.65);
     end
     
     % level walking contribution
@@ -178,34 +228,79 @@ MR1_14EVA2 = MR1_14EVA2*J2kcal*3600; %[kcal/hr]
 MR2_14EVA2 = W2_level_14EVA2 + W2_slope_14EVA2;
 MR2_14EVA2 = MR2_14EVA2*J2kcal*3600; %[kcal/hr]
 
+%% Correction Factor - BMR
+% I'm making the assumption that Santee's model does not take into account
+% the Basal Metabolic Rate (BMR) of the astronaut (which makes sense based
+% on the equations). However, I think it is a safe assumption that the
+% measured metabolic rates from the Apollo astronauts do take into account
+% BMR. 
+
+% corrBMR = 100;
+% 
+% MR1_14EVA2 = MR1_14EVA2+corrBMR;
+% MR2_14EVA2 = MR2_14EVA2+corrBMR;
+
 %% Plotting Apollo 14 Modeled vs. Actual
-figure(2);
-hold on;
-grid on;
-plot(MR1_14EVA1,'Color','#A2142F','LineWidth',2);
-plot(MR2_14EVA1,'Color','#7E2F8E','LineWidth',2);
-plot(MR1_14EVA1_ac,'x','Color','#A2142F','MarkerSize',12,'LineWidth',2)
-plot(MR2_14EVA1_ac,'x','Color','#7E2F8E','MarkerSize',12,'LineWidth',2)
-legend('Modeled CDR','Modeled, LMP','Measured CDR','Measured LMP')
-ylabel('MR, kcal/hr');
-title('Metabolic Rates on Apollo 14 EVA-1');
-hold off;
+% figure(2);
+% hold on;
+% grid on;
+% plot(MR1_14EVA1,'Color','#A2142F','LineWidth',2);
+% plot(MR2_14EVA1,'Color','#7E2F8E','LineWidth',2);
+% plot(MR1_14EVA1_ac,'x','Color','#A2142F','MarkerSize',12,'LineWidth',2)
+% plot(MR2_14EVA1_ac,'x','Color','#7E2F8E','MarkerSize',12,'LineWidth',2)
+% legend('Modeled CDR','Modeled, LMP','Measured CDR','Measured LMP')
+% ylabel('MR, kcal/hr');
+% title('Metabolic Rates on Apollo 14 EVA-1');
+% hold off;
 
 figure(3);
 hold on;
-grid on;
-plot(MR1_14EVA2,'Color','#A2142F','LineWidth',2);
-plot(MR2_14EVA2,'Color','#7E2F8E','LineWidth',2);
-plot(MR1_14EVA2_ac,'x','Color','#A2142F','MarkerSize',12,'LineWidth',2)
-plot(MR2_14EVA2_ac,'x','Color','#7E2F8E','MarkerSize',12,'LineWidth',2)
-legend('Modeled CDR','Modeled LMP','Measured CDR','Measured LMP')
+sgtitle('Metabolic Rates on Apollo 14 EVA-2');
+subplot(1,2,1);
+hold on;
+grid minor;
+plot(v_14EVA2,MR1_14EVA2,'o','Color','k','LineWidth',2);
+plot(v_14EVA2,MR1_14EVA2_ac,'x','Color','#A2142F','MarkerSize',12,'LineWidth',2)
+xlabel('Velocity, m/s');
 ylabel('MR, kcal/hr');
-title('Metabolic Rates on Apollo 14 EVA-2');
+title('CDR');
+hold off;
+subplot(1,2,2);
+hold on;
+grid minor;
+plot(v_14EVA2,MR2_14EVA2,'o','Color','k','LineWidth',2);
+plot(v_14EVA2,MR2_14EVA2_ac,'x','Color','#7E2F8E','MarkerSize',12,'LineWidth',2)
+legend('Modeled','Measured');
+xlabel('Velocity, m/s');
+ylabel('MR, kcal/hr');
+title('LMP');
 hold off;
 
+figure(5);
+hold on;
+sgtitle('Metabolic Rates on Apollo 14 EVA-2');
+subplot(1,2,1);
+hold on;
+grid minor;
+plot(slope_14EVA2,MR1_14EVA2,'o','Color','k','LineWidth',2);
+plot(slope_14EVA2,MR1_14EVA2_ac,'x','Color','#A2142F','MarkerSize',12,'LineWidth',2)
+xlabel('Slope, rad');
+ylabel('MR, kcal/hr');
+title('CDR');
+hold off;
+subplot(1,2,2);
+hold on;
+grid minor;
+plot(slope_14EVA2,MR2_14EVA2,'o','Color','k','LineWidth',2);
+plot(slope_14EVA2,MR2_14EVA2_ac,'x','Color','#7E2F8E','MarkerSize',12,'LineWidth',2)
+legend('Modeled','Measured');
+xlabel('Slope, rad');
+ylabel('MR, kcal/hr');
+title('LMP');
+hold off;
+
+
 %% Calculating Error
-err1_14EVA1 = abs(MR1_14EVA1-MR1_14EVA1_ac)./MR1_14EVA1_ac*100;
-err2_14EVA1 = abs(MR1_14EVA1-MR2_14EVA1_ac)./MR2_14EVA1_ac*100;
 
 err1_14EVA2 = abs(MR1_14EVA2-MR1_14EVA2_ac)./MR1_14EVA2_ac*100;
 err2_14EVA2 = abs(MR1_14EVA2-MR2_14EVA2_ac)./MR2_14EVA2_ac*100;
@@ -213,11 +308,28 @@ err2_14EVA2 = abs(MR1_14EVA2-MR2_14EVA2_ac)./MR2_14EVA2_ac*100;
 figure(4);
 hold on
 grid on;
-plot(err1_14EVA1,'Color','#A2142F','LineWidth',2);
-plot(err2_14EVA1,'Color','#7E2F8E','LineWidth',2);
-plot(err1_14EVA2,'Color','#0072BD','LineWidth',2);
-plot(err2_14EVA2,'Color','#EDB120','LineWidth',2);
+% plot(err1_14EVA1,'Color','#A2142F','LineWidth',2);
+% plot(err2_14EVA1,'Color','#7E2F8E','LineWidth',2);
+plot(v_14EVA2,err1_14EVA2,'o','Color','#A2142F','LineWidth',2);
+plot(v_14EVA2,err2_14EVA2,'o','Color','#7E2F8E','LineWidth',2);
 ylabel('Percent Error');
 title('Percent Error of Model Estimation');
-legend('EVA-1 CDR','EVA-1 LMP','EVA-2 CDR','EVA-2 LMP');
+%legend('EVA-1 CDR','EVA-1 LMP','EVA-2 CDR','EVA-2 LMP');
 hold off;
+
+figure(8);
+hold on
+grid on;
+% plot(err1_14EVA1,'Color','#A2142F','LineWidth',2);
+% plot(err2_14EVA1,'Color','#7E2F8E','LineWidth',2);
+plot(rad2deg(slope_14EVA2),err1_14EVA2,'o','Color','#A2142F','LineWidth',2);
+plot(rad2deg(slope_14EVA2),err2_14EVA2,'o','Color','#7E2F8E','LineWidth',2);
+ylabel('Percent Error');
+xlabel('Slope, degrees')
+title('Percent Error of Model Estimation');
+%legend('EVA-1 CDR','EVA-1 LMP','EVA-2 CDR','EVA-2 LMP');
+hold off;
+
+
+%% Trying something new
+dataSim = readtable('3.csv');
