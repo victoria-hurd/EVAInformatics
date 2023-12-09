@@ -49,7 +49,7 @@ function main()
     cost_matrix = create_cost_matrix(X, Y, Z_slope);
     
     %% Get Path between ROIs
-    [path, updated_cost_matrix] = create_path(POIs, X, Y, Z_slope, cost_matrix);
+    [path, pathIdx, updated_cost_matrix] = create_path(POIs, X, Y, Z_slope, cost_matrix);
     
     %% Plot Simple
     cost_matrix_color = flip(gray,1) * 0.8;
