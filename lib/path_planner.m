@@ -1,4 +1,4 @@
-% Erin Richardson, Victoria Hurd
+% Erin Richardson, Victoria Hurd, Nicole Futch
 %% Make a cost map 
 function [refPath, costmap] = path_planner(Z_slope,costMatrix,startPose,goalPose)
 % Normalize costmatrix from 0 to 1
@@ -28,8 +28,9 @@ costmap.CollisionChecker.InflationRadius = 0; % Set inflation radius to 0
 costmap.OccupiedThreshold = double(0.99);
 costmap.FreeThreshold = double(0.99);
 
-planner = pathPlannerRRT(costmap, 'MinTurningRadius',1); % Includes minimum 
 % turning radius value of 1 meter
+planner = pathPlannerRRT(costmap, 'MinTurningRadius',1); % Includes minimum 
+
 
 %% Plan a path
 refPath = plan(planner,startPose, goalPose);

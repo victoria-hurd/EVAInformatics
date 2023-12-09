@@ -66,5 +66,5 @@ function main()
 
     %% Plot Moving Along Path
     % Plot Interactive Vizualization
-    plot_path_full_view(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
+    %plot_path_full_view(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
 end
