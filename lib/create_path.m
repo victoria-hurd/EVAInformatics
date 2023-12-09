@@ -16,8 +16,8 @@
 
 function [path, cost_matrix] = create_path(ROIs, X, Y, Z_slope, cost_matrix)
 %% Creating Cost Function
-    % Normalize entire matrix
-    cost_matrix = normalize(cost_matrix,'range');
+    % Normalize entire matrix 
+    cost_matrix = normalize_2_dimensions(cost_matrix);
 
     % Set cells with slopes above 20deg to Occupied
     cost_matrix(Z_slope > 20) = 0.999;
@@ -59,9 +59,25 @@ function [path, cost_matrix] = create_path(ROIs, X, Y, Z_slope, cost_matrix)
         end
     end
 
-    X_pos = interp1(1:length(X(1,:)), X(1,:), X_pos,'linear');
-    Y_pos = interp1(1:length(Y(:,1)), Y(:,1), Y_pos,'linear');
+    X_pos = interp1(1:length(X(1,:)), X(1,:), X_pos,'nearest');
+    Y_pos = interp1(1:length(Y(:,1)), Y(:,1), Y_pos,'nearest');
+    
+    % make sure the end point of the path is on the last ROI
+    if ((X_pos(end)~= ROIs(end,1)) || (Y_pos(end)~= ROIs(end,2)))
+        X_pos = [X_pos; ROIs(end,1)];
+        Y_pos = [Y_pos; ROIs(end,2)];
+    end   
 
     path = [X_pos, Y_pos];
 
+end
+
+%% Normalize a 2d matrix 
+% method is range between [0 1] across all dimensions
+% the matlab function normalize() only allws it across a single dimension
+function M = normalize_2_dimensions(M)
+    MIN = min(min(M));
+    MAX = max(max(M));
+    
+    M = (M-MIN) / (MAX - MIN);
 end
