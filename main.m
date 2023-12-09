@@ -44,6 +44,7 @@ function main()
     % Solve Traveling Salesman Problem
     POIOrder = solve_TSP(coordVec);
     POIs = coordVec(POIOrder,:);
+    OGPOIs = POIs;
    
     
     %% Walkthrough.m
@@ -56,15 +57,15 @@ function main()
         cost_matrix = create_cost_matrix(X, Y, Z_slope, penalty);
 
         if penalty ~= 1
-            % Update path history
-            pathHistory{end+1} = path;
-            endPoseHistory = [endPoseHistory;endPose];
             % Update POI list
-    
             % Find index of where we made it to
             endPoseX = path(:,1) == endPose(1);
             endPoseY = path(:,2) == endPose(2);
             endPoseIdx = find(and(endPoseX,endPoseY));
+
+            % Update path history
+            pathHistory{end+1} = path;
+            endPoseHistory = [endPoseHistory;endPoseIdx];
     
             % Check what ROIs we've visited
             POIcounter = 1;
@@ -95,25 +96,26 @@ function main()
     % Update path history
     pathHistory{end+1} = path;
 
+
     %% Path History Plot
     elev_matrix_color = gray;
     elev_matrix_color = elev_matrix_color*0.8; 
-    plot_path_history(X, Y, Z_elevation, POIs, pathHistory, endPoseHistory, elev_matrix_color, "Elevation [Meters]");
+    plot_path_history(X, Y, Z_elevation, OGPOIs, pathHistory, endPoseHistory, elev_matrix_color, "Elevation [Meters]");
 
     %% Plot Simple
     cost_matrix_color = flip(gray,1) * 0.8;
     cost_matrix_color(end, :) = [1, 0, 0];
-    plot_path_simple(X, Y, updated_cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
+    plot_path_simple(X, Y, updated_cost_matrix, OGPOIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
     
     % Create custom colormap and Plot Elevation
     elev_matrix_color = gray;
     elev_matrix_color = elev_matrix_color*0.8;  
-    plot_path_simple(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
+    plot_path_simple(X, Y, Z_elevation, OGPOIs, path, elev_matrix_color, "Elevation [Meters]");
 
     % Plot Slope
-    plot_path_simple(X, Y, Z_slope, POIs, path, flip(gray,1), "Slope [Degrees]");
+    plot_path_simple(X, Y, Z_slope, OGPOIs, path, flip(gray,1), "Slope [Degrees]");
 
     %% Plot Moving Along Path
     % Plot Interactive Vizualization
-    plot_path_full_view(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
+    plot_path_full_view(X, Y, Z_elevation, OGPOIs, path, elev_matrix_color, "Elevation [Meters]");
 end

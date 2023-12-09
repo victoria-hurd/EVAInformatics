@@ -32,17 +32,19 @@ function plot_path_history(X, Y, Z, POIs, pathHistory, endPoseHistory, color, Z_
     text(POIs(:, 1)+dx,   POIs(:, 2)+dy, Z_poi, c, 'FontSize',10);
         
     %% Plot Path Between ROIs
+    endPoseHistory = [endPoseHistory;length(pathHistory{end})]
+
     for i = 1:length(pathHistory)
         X_pos = pathHistory{i}(:,1);
         Y_pos = pathHistory{i}(:,2);
         N = length(X_pos);
         Z_pos = ones(N,1);
         Z_pos(:) = 1000000;
-        % Setup refreshdata plotting 
+        % Setup refresh data plotting 
         X_path = NaN(N, 1);
         Y_path = NaN(N, 1);
         
-        future_path_plot = plot3(X_pos, Y_pos, Z_pos, 'LineWidth',2);
+        future_path_plot = plot3(X_pos(1:endPoseHistory(i)), Y_pos(1:endPoseHistory(i)), Z_pos(1:endPoseHistory(i)), 'LineWidth',2);
         future_path_plot.XDataSource = 'X_pos';
         future_path_plot.YDataSource = 'Y_pos';
     end
