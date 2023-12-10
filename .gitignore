@@ -3,5 +3,6 @@
 main.m
 bioinformatics/Z_slope.mat
 bioinformatics/terrain_output.mat
-main.m
 bioinformatics/3.csv
+bioinformatics/NAC_DTM_APOLLO14.tif
+bioinformatics/Apollo14_slope.mat
