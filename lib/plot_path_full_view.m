@@ -7,7 +7,9 @@
 %    Y = [Y_coordinates, Y_coordinates] created with meshgrid from get_map_data()
 %    Z = surface data to plot, X x Y dimensions of floating point value (elevation, slope, cost, etc...)
 %    ROIs = [X_coordinates, Y_Coordinates]
-%    path = [X_coordinates, Y_Coordinates]
+%    pathHistory = cell arrayt of [X_coordinates, Y_Coordinates]
+%    endPoseHistory = array of indexies for what each cell of pathHistory
+%    got to before replanning
 %    color = colormap Name for the surface plot to use. (https://www.mathworks.com/help/matlab/ref/colormap.html)
 %    Z_label = string for the Z axis of the surface plot to be labeled with
 %    cost_matrix = 
@@ -16,9 +18,10 @@
 %    Displays a plot
 %    
 
-function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label, cost_matrix)   
+function plot_path_full_view(X, Y, Z, POIs, pathHistory, endPoseHistory, color, Z_label, cost_matrix)   
+    %% Get Vital Estimates
     [hr, o2, co2] = vital_estimator(cost_matrix);
-    
+
     %% Plot Z Map
     fig = uifigure('Name',strcat("Path Vizualization: ", Z_label));
     fig.Position(2:4) = [100 800 800];
@@ -58,20 +61,33 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label, cost_matrix)
     text(ax, POIs(:, 1)+dx,   POIs(:, 2)+dy, Z_poi, c, 'FontSize',10);
         
     %% Plot Path Between ROIs
-    X_pos = path(:,1);
-    Y_pos = path(:,2);
-    N = length(path);
-    Z_pos = ones(N,1);
+    maxLength = 0;
+    for i  = 1:length(pathHistory)
+        if maxLength < length(pathHistory{i})
+            maxLength = length(pathHistory{i});
+        end
+    end
+    maxLength = maxLength*2;
+    endPoseHistory = [endPoseHistory;maxLength];
+    path_cell_index = 1;
+    current_path_cell_iter = 1;
+    X_pos = pathHistory{path_cell_index}(:,1);
+    Y_pos = pathHistory{path_cell_index}(:,2);
+    numFrames = length(pathHistory{path_cell_index});
+    Z_pos = ones(numFrames,1);
     Z_pos(:) = 1000000;
     % Setup refreshdata plotting 
-    X_path = NaN(N, 1);
-    Y_path = NaN(N, 1);
+    
+    X_path = NaN(maxLength, 1);
+    Y_path = NaN(maxLength, 1);
+    Z_pos_2 = ones(maxLength,1);
     
     future_path_plot = plot3(ax, X_pos, Y_pos, Z_pos , 'Color', "#27BA76", 'LineWidth',2);
     future_path_plot.XDataSource = 'X_pos';
     future_path_plot.YDataSource = 'Y_pos';
+    future_path_plot.ZDataSource = 'Z_pos';
     
-    path_plot = plot3(ax, X_path ,Y_path,Z_pos, 'Color', "#40755C", 'LineWidth',1);
+    path_plot = plot3(ax, X_path ,Y_path,Z_pos_2, 'Color', "#40755C", 'LineWidth',1);
     path_plot.XDataSource = 'X_path';
     path_plot.YDataSource = 'Y_path';
 
@@ -87,17 +103,9 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label, cost_matrix)
     reset = false;
     fullView = true;
     north_up = true;
-    numFrames = N;
     iter=1;
      
-    X_pos = path(:,1);
-    Y_pos = path(:,2);
-    
-    X_path = NaN(numFrames , 1);
-    Y_path = NaN(numFrames , 1);
 
-    X_current = X_pos(1);
-    Y_current = Y_pos(1);   
     
     %% Setup UI Buttons    
     b1 = uibutton(g, ...
@@ -136,13 +144,6 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label, cost_matrix)
     b6.Layout.Row = 3;
     b6.Layout.Column = 3;
     b6.Visible = 'off'; % default to off as this only matters in local view
-    
-    b7 = uibutton(g, ...
-        "Text","Clear Alert", ...
-        "ButtonPushedFcn", @(src,event) clearAlertButtonPushed());
-    b7.Layout.Row = 3;
-    b7.Layout.Column = 4;
-    
 
     txt_alert = annotation(g, "textbox", 'vert', 'top');
     txt_alert.Position= [.102 .84 .4 .12]; % TODO: make this relative position so when the window changes form it stays in that spot
@@ -168,22 +169,26 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label, cost_matrix)
         end
                 
         % If frame is finished, break
-        if iter>numFrames
+        if current_path_cell_iter>numFrames
             reset = true;
             pauseS = true;
             pause(1)
         end
                          
         if reset == true
-            X_pos = path(:,1);
-            Y_pos = path(:,2);
-
-            X_path = NaN(numFrames , 1);
-            Y_path = NaN(numFrames , 1);
+            path_cell_index = 1;
+            X_pos = pathHistory{path_cell_index}(:,1);
+            Y_pos = pathHistory{path_cell_index}(:,2);
+            numFrames = length(pathHistory{path_cell_index});
+            Z_pos = ones(numFrames,1);
+            Z_pos(:) = 1000000;
+            X_path = NaN(maxLength, 1);
+            Y_path = NaN(maxLength, 1);
 
             X_current = X_pos(1);
             Y_current = Y_pos(1);  
             iter = 1;
+            current_path_cell_iter = 1;
             pauseS = true;
             reset = false;
             
@@ -192,6 +197,19 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label, cost_matrix)
             refreshdata(current_pos, 'caller');
             drawnow;
         
+        end
+        
+        show = false;
+        if current_path_cell_iter >  endPoseHistory(path_cell_index)
+%             fprintf("Replanning \n");
+            current_path_cell_iter = 1;
+            path_cell_index = path_cell_index + 1;
+            X_pos = pathHistory{path_cell_index}(:,1);
+            Y_pos = pathHistory{path_cell_index}(:,2);
+            numFrames = length(pathHistory{path_cell_index});
+            Z_pos = ones(numFrames,1);
+            Z_pos(:) = 1000000;
+            show = true;
         end
         
         % pause and resume
@@ -204,62 +222,34 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label, cost_matrix)
             end
         end 
                 
-        X_path(iter) = X_pos(iter);
-        Y_path(iter) = Y_pos(iter);
-        X_current = X_pos(iter);
-        Y_current = Y_pos(iter);
-        if iter > 1
-            X_pos(iter - 1) = NaN;
-            Y_pos(iter - 1) = NaN;
+        X_path(iter) = X_pos(current_path_cell_iter);
+        Y_path(iter) = Y_pos(current_path_cell_iter);
+        X_current = X_pos(current_path_cell_iter);
+        Y_current = Y_pos(current_path_cell_iter);
+        if current_path_cell_iter > 1
+            X_pos(current_path_cell_iter - 1) = NaN;
+            Y_pos(current_path_cell_iter - 1) = NaN;
         end
         
-        % Physio Monitoring
-%         pathIdx
-%         iter
+       % Physio Monitoring
        X_current_idx = interp1(X(1,:), 1:length(X(1,:)), X_current,'nearest');
        Y_current_idx = interp1(Y(:,1), 1:length(Y(:,1)), Y_current,'nearest');
        heartrate = hr(X_current_idx,Y_current_idx);
        o2_consumption = o2(X_current_idx,Y_current_idx);
        co2_production = co2(X_current_idx,Y_current_idx);
-       heartrate_criticality_level = monitor_heartrate(heartrate); 
-       o2_consumption_criticality_level = monitor_o2_consumption(o2_consumption); 
-       co2_production_criticality_level = monitor_co2_production(co2_production); 
-%        water_remaining_criticality_level = monitor_water_remaining(water_remaining);
-       
-       % TODO: [Viz team] Display alerts based on criticality levels 
+
+       % Display alerts based on criticality levels 
        bpm_string = strcat('Heart Rate: ', string(heartrate));
        o2_string =  strcat('O2 Consumption: ', string(o2_consumption));
        co2_string = strcat('CO2 Consumption: ', string(co2_production));
-%        h2o_string = '';
-%        show = false;
-       
-       
-       
-%        
-%        if heartrate_criticality_level == 3
-%            bpm_string = strcat('Elevated Heart Rate: ', string(heartrate));
-%            show = true;
-%        end
-%        if o2_consumption_criticality_level == 3
-%            o2_string = strcat('Elevated O2 Consumption: ', string(o2_consumption));
-%            show = true;
-%        end
-%        if co2_production_criticality_level == 3
-%            co2_string = strcat('Elevated CO2 Consumption: ', string(co2_production));
-%            show = true;
-%        end
-% %        if water_remaining_criticality_level == 3
-% %            h2o_string = strcat('Low Water Remaining: ', string(water_remaining));
-% %            show = true;
-% %        end
-       
-%        if show
-           txt_alert.String = sprintf("%s \n%s \n%s",bpm_string, o2_string, co2_string);
+       if show
+           txt_alert.String = sprintf("Elevated Vitals - Replanning Path \n%s \n%s \n%s",bpm_string, o2_string, co2_string);
            txt_alert.FaceAlpha = 0.5;
-%        else
-%            txt_alert.String = '';
-%            txt_alert.FaceAlpha = 0.0;
-%        end
+           pause(0.5);
+       else
+           txt_alert.String = '';
+           txt_alert.FaceAlpha = 0.0;
+       end
               
        % Update and refresh view
         if fullView==true            
@@ -300,8 +290,8 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label, cost_matrix)
                     axis(ax, 'on');                    
                 else
                     [view_angle, ~] = view(ax);            
-                    if (iter < numFrames)
-                        view_angle = atan2d(Y_pos(iter+1)- Y_current, X_pos(iter+1)- X_current) - 90;
+                    if (current_path_cell_iter < length(pathHistory{path_cell_index}))
+                        view_angle = atan2d(Y_pos(current_path_cell_iter+1)- Y_current, X_pos(current_path_cell_iter+1)- X_current) - 90;
 
                     end
                     view(ax, view_angle, 90); 
@@ -324,7 +314,10 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label, cost_matrix)
             break;
         end
         
-        iter = iter + 1;  
+        if show ~= true
+            iter = iter + 1;
+        end        
+        current_path_cell_iter = current_path_cell_iter + 1;
     end
     
        
@@ -384,8 +377,4 @@ function toggleNorthButtonPushed()
     else
          north_up=true;
     end
-end
-
-function clearAlertButtonPushed()  
-     % TODO: Implement Alert Clear
 end
