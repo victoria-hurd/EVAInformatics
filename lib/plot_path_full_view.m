@@ -281,7 +281,7 @@ function plot_path_full_view(X, Y, Z, POIs, pathHistory, endPoseHistory, color, 
             end
             
             if ishandle(ax)
-                b6.Visible = 'on';
+%                 b6.Visible = 'on'; //Uncomment to allow toggling North Up
                 xlim(ax,[X_start_idx X_end_idx]);
                 ylim(ax,[Y_end_idx Y_start_idx]);
 
