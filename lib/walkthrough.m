@@ -1,6 +1,6 @@
 % Vicki/Erin time script
 
-function [replanFlag,endPose,endPoseIdx] = walkthrough(path, pathIdx,updated_cost_matrix)
+function [replanFlag,goHomeFlag,endPose,endPoseIdx] = walkthrough(path, pathIdx,updated_cost_matrix)
 %% Constants
 
 % Assign constant walking velocity
@@ -11,6 +11,10 @@ coord2m = 30.28*1000; % [m] --- source: https://www.lpi.usra.edu/lunar/tools/lun
 
 % Specify HR threshold that requires path replan
 HRthreshold = 110; % [bpm] (arbitrarily chosen for now to get interesting results)
+% Specify O2 threshold that requires path replan
+O2threshold = 0.7; % [g/min] (arbitrarily chosen for now to get interesting results)
+% Specify CO2 threshold that requires path replan
+CO2threshold = 0.7; % [g/min] (arbitrarily chosen for now to get interesting results)
 
 %% Calculate distance of each path segment
 path1 = path(1:end-1,:);
@@ -37,23 +41,78 @@ pathIdx = floor(pathIdx);
 pathHR = zeros(length(pathIdx),1);
 for i=1:length(pathIdx)
     pathHR(i)=hr(pathIdx(i,1),pathIdx(i,2));
+    pathO2(i)= o2(pathIdx(i,1),pathIdx(i,2));
+    pathCO2(i)= co2(pathIdx(i,1),pathIdx(i,2));
 end
 
-%% Plot HR vs time
+%% Plot HR, CO2, and O2 vs time
 figure
-hold on 
-grid minor
 if length(t)>length(pathHR)
+    subplot(3,1,1);
+    hold on
+    grid minor
+    title('Heart Rate over Planned Path')
+    xlabel('Moving Time [sec]')
+    ylabel('Heart Rate [bpm]')
     plot(t(1:end-1),pathHR)
-else
-    plot(t,pathHR)
-end
-ylim([60 180])
-yline(110)
-hold off
+    ylim([80 160])
+    yline(HRthreshold, '-r')
+    hold off
 
-%% Threshold Flag
-% Check if the HR threshold was ever exceeded
+    subplot(3,1,2);
+    hold on
+    grid minor
+    title('O2 Levels over Planned Path')
+    xlabel('Moving Time [sec]')
+    ylabel('O2 Level [g/min]')
+    plot(t(1:end-1),pathO2)
+    yline(O2threshold, '-r')
+    hold off
+
+    subplot(3,1,3);
+    hold on
+    grid minor
+    title('CO2 Levels over Planned Path')
+    xlabel('Moving Time [sec]')
+    ylabel('CO2 Level [g/min]')
+    plot(t(1:end-1),pathCO2)
+    yline(CO2threshold, '-r')
+    hold off
+else
+    subplot(3,1,1);
+    hold on
+    grid minor
+    title('Heart Rate over Planned Path')
+    xlabel('Moving Time [sec]')
+    ylabel('Heart Rate [bpm]')
+    plot(t,pathHR)
+    ylim([60 180])
+    yline(HRthreshold, '-r')
+    hold off
+
+    subplot(3,1,2);
+    hold on
+    grid minor
+    title('O2 Levels over Planned Path')
+    xlabel('Moving Time [sec]')
+    ylabel('O2 Level [g/min]')
+    plot(t,pathO2)
+    yline(O2threshold, '-r')
+    hold off
+
+    subplot(3,1,3);
+    hold on
+    grid minor
+    title('CO2 Levels over Planned Path')
+    xlabel('Moving Time [sec]')
+    ylabel('CO2 Level [g/min]')
+    plot(t,pathCO2)
+    yline(CO2threshold, '-r')
+    hold off
+end
+
+%% Heart Rate Threshold Flag
+% Check if any thresholds were ever exceeded
 badHR = find(pathHR>HRthreshold);
 
 % If not, no need to replan, set flag to 0 and finish
@@ -67,6 +126,31 @@ else
     replanFlag = 1;
     endPose = path(badHR(1),:);
     endPoseIdx = badHR(1);
+end
+
+%% Go Home Threshold Flag
+% Check to see if we need to go home based on current path
+badO2 = find(pathO2>O2threshold);
+badCO2 = find(pathCO2>CO2threshold);
+
+% Create goHome flag - O2 flag is element 1, CO2 flag is element 2
+goHomeFlag = nan(2,1);
+% If we need to go home, flag it and flag the reason why
+if ~isempty(badO2) && ~isempty(badCO2)
+    if ~isempty(badO2)
+        goHomeFlag(1) = 1;
+    else
+        goHomeFlag(1) = 0;
+    end
+
+    if ~isempty(badCO2)
+        goHomeFlag(2) = 1;
+    else
+        goHomeFlag(2) = 0;
+    end
+else
+    % If not out of bounds, do nothing!
+    goHomeFlag = 0;
 end
 
 end
