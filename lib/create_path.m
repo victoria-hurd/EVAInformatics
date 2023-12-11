@@ -14,7 +14,7 @@
 %    path = [X_coordinates, Y_Coordinates]
 %    cost_matrix = updated cost matrix 
 
-function [path, cost_matrix] = create_path(ROIs, X, Y, Z_slope, cost_matrix)
+function [path, pathIdx, cost_matrix] = create_path(ROIs, X, Y, Z_slope, cost_matrix)
 %% Creating Cost Function
     % Normalize entire matrix 
     cost_matrix = normalize_2_dimensions(cost_matrix);
@@ -58,6 +58,8 @@ function [path, cost_matrix] = create_path(ROIs, X, Y, Z_slope, cost_matrix)
             step_idx = step_idx + 1;
         end
     end
+
+    pathIdx = [X_pos, Y_pos];
 
     X_pos = interp1(1:length(X(1,:)), X(1,:), X_pos,'nearest');
     Y_pos = interp1(1:length(Y(:,1)), Y(:,1), Y_pos,'nearest');

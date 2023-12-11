@@ -44,27 +44,86 @@ function main()
     % Solve Traveling Salesman Problem
     POIOrder = solve_TSP(coordVec);
     POIs = coordVec(POIOrder,:);
+    OGPOIs = POIs;
+   
     
-    %% Create the Cost Matrix
-    cost_matrix = create_cost_matrix(X, Y, Z_slope);
-    
-    %% Get Path between ROIs
-    [path, updated_cost_matrix] = create_path(POIs, X, Y, Z_slope, cost_matrix);
-    
-    %% Plot Simple
-    cost_matrix_color = flip(gray,1) * 0.8;
-    cost_matrix_color(end, :) = [1, 0, 0];
-%     plot_path_simple(X, Y, updated_cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
-%     
-%     % Create custom colormap and Plot Elevation
-    elev_matrix_color = gray;
-    elev_matrix_color = elev_matrix_color*0.8;  
-%     plot_path_simple(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
-% 
-%     % Plot Slope
-%     plot_path_simple(X, Y, Z_slope, POIs, path, flip(gray,1), "Slope [Degrees]");
+    %% Walkthrough.m
 
-    %% Plot Moving Along Path
-    % Plot Interactive Vizualization
-    plot_path_full_view(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
+    % Set initial conditions for replanning
+    replanFlag = 1; % When this is set = 0, our path doesnt exceed any thresholds and we are done
+    penalty = 0.99; % This affects the cost associated with sloped cells, iteratively increase it if we need to penalize them more
+    pathHistory = {}; % This is where we store all of the paths we generated
+    endPoseHistory = []; % This is where we store the indices of where we end each path (where a threshold was exceeded)
+    
+    % While we are still walking the path and could need more replanning
+    while replanFlag == 1
+
+        % Create the Cost Matrix
+        cost_matrix = create_cost_matrix(X, Y, Z_slope, penalty);
+
+        % If we need to penalize slope more
+        if penalty > 1
+
+            % Update POI list - our next path only needs to hit the POIs we
+            % haven't visited yet
+
+            % Update path history
+            pathHistory{end+1} = path; % the path we were on when we exceeded a threshold
+            endPoseHistory = [endPoseHistory;endPoseIdx]; % the point we made it to on that path
+    
+            % Check what ROIs we've visited
+            POIcounter = 1;
+            while 1
+
+                % Find index of POI i
+                poiX = path(:,1) == POIs(POIcounter,1);
+                poiY = path(:,2) == POIs(POIcounter,2);
+                poiIdx = find(and(poiX,poiY));
+                
+                % Check if we had visited that POI yet
+                % If we hadn't then retain that and all subsequent POIs for
+                % next path
+                if poiIdx > endPoseIdx
+                    POIs = [endPose;POIs(POIcounter:end,:)]; 
+                    break
+                % If we had visited it, check the next POI in the list
+                else
+                    % add to counter
+                    POIcounter = POIcounter+1;
+                end
+            end
+        end
+
+        % Get new path between POIs using updated POI list
+        [path, pathIdx, updated_cost_matrix] = create_path(POIs, X, Y, Z_slope, cost_matrix);
+        [replanFlag,endPose,endPoseIdx] = walkthrough(path, pathIdx,updated_cost_matrix);
+        penalty = penalty + 0.01;
+    end
+
+    % Update path history - add last path visited (that didn't require a
+    % replan) to the path history plot
+    pathHistory{end+1} = path;
+
+
+    %% Path History Plot
+    elev_matrix_color = gray;
+    elev_matrix_color = elev_matrix_color*0.8; 
+    plot_path_history(X, Y, Z_elevation, OGPOIs, pathHistory, endPoseHistory, elev_matrix_color, "Elevation [Meters]");
+
+    % %% Plot Simple
+    % cost_matrix_color = flip(gray,1) * 0.8;
+    % cost_matrix_color(end, :) = [1, 0, 0];
+    % plot_path_simple(X, Y, updated_cost_matrix, OGPOIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
+    % 
+    % % Create custom colormap and Plot Elevation
+    % elev_matrix_color = gray;
+    % elev_matrix_color = elev_matrix_color*0.8;  
+    % plot_path_simple(X, Y, Z_elevation, OGPOIs, path, elev_matrix_color, "Elevation [Meters]");
+    % 
+    % % Plot Slope
+    % plot_path_simple(X, Y, Z_slope, OGPOIs, path, flip(gray,1), "Slope [Degrees]");
+    % 
+    % %% Plot Moving Along Path
+    % % Plot Interactive Vizualization
+    % plot_path_full_view(X, Y, Z_elevation, OGPOIs, path, elev_matrix_color, "Elevation [Meters]");
 end
