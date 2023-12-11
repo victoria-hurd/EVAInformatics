@@ -54,15 +54,15 @@ function main()
     %% Plot Simple
     cost_matrix_color = flip(gray,1) * 0.8;
     cost_matrix_color(end, :) = [1, 0, 0];
-    plot_path_simple(X, Y, updated_cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
-    
-    % Create custom colormap and Plot Elevation
+%     plot_path_simple(X, Y, updated_cost_matrix, POIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
+%     
+%     % Create custom colormap and Plot Elevation
     elev_matrix_color = gray;
     elev_matrix_color = elev_matrix_color*0.8;  
-    plot_path_simple(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
-
-    % Plot Slope
-    plot_path_simple(X, Y, Z_slope, POIs, path, flip(gray,1), "Slope [Degrees]");
+%     plot_path_simple(X, Y, Z_elevation, POIs, path, elev_matrix_color, "Elevation [Meters]");
+% 
+%     % Plot Slope
+%     plot_path_simple(X, Y, Z_slope, POIs, path, flip(gray,1), "Slope [Degrees]");
 
     %% Plot Moving Along Path
     % Plot Interactive Vizualization

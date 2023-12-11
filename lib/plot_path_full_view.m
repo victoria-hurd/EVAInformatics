@@ -140,6 +140,14 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
     b7.Layout.Row = 3;
     b7.Layout.Column = 4;
     
+
+    txt_alert = annotation(g, "textbox", 'vert', 'top');
+    txt_alert.Position= [.102 .84 .4 .12]; % TODO: make this relative position so when the window changes form it stays in that spot
+    txt_alert.EdgeColor = 'none';
+    txt_alert.BackgroundColor = 'red';
+    txt_alert.FaceAlpha = 0.0;
+    txt_alert.FontSize = 14;
+    
     hold(ax, 'off' )
     local_coords = (6.6e-5)* 25;
     
@@ -149,9 +157,9 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
         if speed ==1
             pause(0.0001);
         elseif speed==2
-            pause(0.05);
+            pause(0.1);
         elseif speed ==3
-            pause(0.2)
+            pause(0.5)
         elseif speed==4
             pause(1)
         end
@@ -203,14 +211,44 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
         end
         
         % Physio Monitoring
-       [heartrate, o2_consumption, co2_produciton, water_remaining] = get_current_vitals_and_consumables(X_current, Y_current);
+       [heartrate, o2_consumption, co2_production, water_remaining] = get_current_vitals_and_consumables(X_current, Y_current);
        heartrate_criticality_level = monitor_heartrate(heartrate); 
        o2_consumption_criticality_level = monitor_o2_consumption(o2_consumption); 
-       co2_produciton_criticality_level = monitor_co2_produciton(co2_produciton); 
+       co2_production_criticality_level = monitor_co2_production(co2_production); 
        water_remaining_criticality_level = monitor_water_remaining(water_remaining);
        
-       % TODO: [Viz team] Display alerts based on criticality levels
+       % TODO: [Viz team] Display alerts based on criticality levels 
+       bpm_string = '';
+       o2_string =  '';
+       co2_string = '';
+       h2o_string = '';
+       show = false;
        
+       if heartrate_criticality_level == 3
+           bpm_string = strcat('Elevated Heart Rate: ', string(heartrate));
+           show = true;
+       end
+       if o2_consumption_criticality_level == 3
+           o2_string = strcat('Elevated O2 Consumption: ', string(o2_consumption));
+           show = true;
+       end
+       if co2_production_criticality_level == 3
+           co2_string = strcat('Elevated CO2 Consumption: ', string(co2_production));
+           show = true;
+       end
+       if water_remaining_criticality_level == 3
+           h2o_string = strcat('Low Water Remaining: ', string(water_remaining));
+           show = true;
+       end
+       
+       if show
+           txt_alert.String = sprintf("%s \n%s \n%s \n%s",bpm_string, o2_string, co2_string, h2o_string);
+           txt_alert.FaceAlpha = 0.5;
+       else
+           txt_alert.String = '';
+           txt_alert.FaceAlpha = 0.0;
+       end
+              
        % Update and refresh view
         if fullView==true            
             if ishandle(ax)
