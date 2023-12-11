@@ -136,7 +136,7 @@ badCO2 = find(pathCO2>CO2threshold);
 % Create goHome flag - O2 flag is element 1, CO2 flag is element 2
 goHomeFlag = nan(2,1);
 % If we need to go home, flag it and flag the reason why
-if ~isempty(badO2) && ~isempty(badCO2)
+if ~isempty(badO2) && ~isempty(badCO2) % OR
     if ~isempty(badO2)
         goHomeFlag(1) = 1;
     else
@@ -150,7 +150,7 @@ if ~isempty(badO2) && ~isempty(badCO2)
     end
 else
     % If not out of bounds, do nothing!
-    goHomeFlag = 0;
+    goHomeFlag = [0;0];
 end
 
 end
