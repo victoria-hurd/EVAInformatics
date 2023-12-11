@@ -10,12 +10,15 @@
 %    path = [X_coordinates, Y_Coordinates]
 %    color = colormap Name for the surface plot to use. (https://www.mathworks.com/help/matlab/ref/colormap.html)
 %    Z_label = string for the Z axis of the surface plot to be labeled with
+%    cost_matrix = 
 
 % Outputs
 %    Displays a plot
 %    
 
-function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
+function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label, cost_matrix)   
+    [hr, o2, co2] = vital_estimator(cost_matrix);
+    
     %% Plot Z Map
     fig = uifigure('Name',strcat("Path Vizualization: ", Z_label));
     fig.Position(2:4) = [100 800 800];
@@ -211,43 +214,52 @@ function plot_path_full_view(X, Y, Z, POIs, path, color, Z_label)
         end
         
         % Physio Monitoring
-       [heartrate, o2_consumption, co2_production, water_remaining] = get_current_vitals_and_consumables(X_current, Y_current);
+%         pathIdx
+%         iter
+       X_current_idx = interp1(X(1,:), 1:length(X(1,:)), X_current,'nearest');
+       Y_current_idx = interp1(Y(:,1), 1:length(Y(:,1)), Y_current,'nearest');
+       heartrate = hr(X_current_idx,Y_current_idx);
+       o2_consumption = o2(X_current_idx,Y_current_idx);
+       co2_production = co2(X_current_idx,Y_current_idx);
        heartrate_criticality_level = monitor_heartrate(heartrate); 
        o2_consumption_criticality_level = monitor_o2_consumption(o2_consumption); 
        co2_production_criticality_level = monitor_co2_production(co2_production); 
-       water_remaining_criticality_level = monitor_water_remaining(water_remaining);
+%        water_remaining_criticality_level = monitor_water_remaining(water_remaining);
        
        % TODO: [Viz team] Display alerts based on criticality levels 
-       bpm_string = '';
-       o2_string =  '';
-       co2_string = '';
-       h2o_string = '';
-       show = false;
+       bpm_string = strcat('Heart Rate: ', string(heartrate));
+       o2_string =  strcat('O2 Consumption: ', string(o2_consumption));
+       co2_string = strcat('CO2 Consumption: ', string(co2_production));
+%        h2o_string = '';
+%        show = false;
        
-       if heartrate_criticality_level == 3
-           bpm_string = strcat('Elevated Heart Rate: ', string(heartrate));
-           show = true;
-       end
-       if o2_consumption_criticality_level == 3
-           o2_string = strcat('Elevated O2 Consumption: ', string(o2_consumption));
-           show = true;
-       end
-       if co2_production_criticality_level == 3
-           co2_string = strcat('Elevated CO2 Consumption: ', string(co2_production));
-           show = true;
-       end
-       if water_remaining_criticality_level == 3
-           h2o_string = strcat('Low Water Remaining: ', string(water_remaining));
-           show = true;
-       end
        
-       if show
-           txt_alert.String = sprintf("%s \n%s \n%s \n%s",bpm_string, o2_string, co2_string, h2o_string);
+       
+%        
+%        if heartrate_criticality_level == 3
+%            bpm_string = strcat('Elevated Heart Rate: ', string(heartrate));
+%            show = true;
+%        end
+%        if o2_consumption_criticality_level == 3
+%            o2_string = strcat('Elevated O2 Consumption: ', string(o2_consumption));
+%            show = true;
+%        end
+%        if co2_production_criticality_level == 3
+%            co2_string = strcat('Elevated CO2 Consumption: ', string(co2_production));
+%            show = true;
+%        end
+% %        if water_remaining_criticality_level == 3
+% %            h2o_string = strcat('Low Water Remaining: ', string(water_remaining));
+% %            show = true;
+% %        end
+       
+%        if show
+           txt_alert.String = sprintf("%s \n%s \n%s",bpm_string, o2_string, co2_string);
            txt_alert.FaceAlpha = 0.5;
-       else
-           txt_alert.String = '';
-           txt_alert.FaceAlpha = 0.0;
-       end
+%        else
+%            txt_alert.String = '';
+%            txt_alert.FaceAlpha = 0.0;
+%        end
               
        % Update and refresh view
         if fullView==true            

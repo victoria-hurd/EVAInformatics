@@ -40,17 +40,17 @@ for i=1:length(pathIdx)
 end
 
 %% Plot HR vs time
-figure
-hold on 
-grid minor
-if length(t)>length(pathHR)
-    plot(t(1:end-1),pathHR)
-else
-    plot(t,pathHR)
-end
-ylim([60 180])
-yline(110)
-hold off
+% figure
+% hold on 
+% grid minor
+% if length(t)>length(pathHR)
+%     plot(t(1:end-1),pathHR)
+% else
+%     plot(t,pathHR)
+% end
+% ylim([60 180])
+% yline(110)
+% hold off
 
 %% Threshold Flag
 % Check if the HR threshold was ever exceeded

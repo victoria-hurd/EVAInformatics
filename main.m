@@ -124,6 +124,28 @@ function main()
     % plot_path_simple(X, Y, Z_slope, OGPOIs, path, flip(gray,1), "Slope [Degrees]");
     % 
     % %% Plot Moving Along Path
-    % % Plot Interactive Vizualization
-    % plot_path_full_view(X, Y, Z_elevation, OGPOIs, path, elev_matrix_color, "Elevation [Meters]");
+    % Plot Interactive Vizualization
+    
+%     full_path_x
+    num_segments = 0;
+    for i = 1:length(pathHistory)
+        num_segments = num_segments + length(pathHistory{i}(:,1));
+    end  
+    endPoseHistory = [endPoseHistory;length(pathHistory{end})];
+   full_path_X = [];
+   full_path_Y = [];
+   for i = 1:length(pathHistory)
+      % Access x coordinates of path i
+      X_pos = pathHistory{i}(:,1);
+
+      % Access y coordinates of path i
+      Y_pos = pathHistory{i}(:,2);
+      full_path_X = [full_path_X; X_pos(1:endPoseHistory(i))]; 
+      full_path_Y = [full_path_Y; Y_pos(1:endPoseHistory(i))]; 
+   end
+  
+   full_path = [full_path_X, full_path_Y];
+        
+ 
+   plot_path_full_view(X, Y, Z_elevation, OGPOIs, full_path, elev_matrix_color, "Elevation [Meters]", updated_cost_matrix);
 end
