@@ -33,7 +33,7 @@ function plot_path_history(X, Y, Z, POIs, pathHistory, endPoseHistory, color, Z_
         
     %% Plot Path Between ROIs
     % Add index of final end point, which is the end of the last path
-    endPoseHistory = [endPoseHistory;length(pathHistory{end})]
+    endPoseHistory = [endPoseHistory;length(pathHistory{end})];
 
     % Iterate over all planned paths
     for i = 1:length(pathHistory)
