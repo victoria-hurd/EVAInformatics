@@ -44,6 +44,7 @@ function main()
     % Solve Traveling Salesman Problem
     POIOrder = solve_TSP(coordVec);
     POIs = coordVec(POIOrder,:);
+    POIs = [POIs;POIs(1,:)]; % hard code for now to force going home
     OGPOIs = POIs;
    
     

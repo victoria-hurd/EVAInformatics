@@ -41,7 +41,7 @@ pathIdx = floor(pathIdx);
 pathHR = zeros(length(pathIdx),1);
 pathO2 = zeros(length(pathIdx),1);
 pathCO2 = zeros(length(pathIdx),1);
-for i=1:length(pathIdx)
+for i=1:height(pathIdx)
     pathHR(i)=hr(pathIdx(i,1),pathIdx(i,2));
     pathO2(i)= o2(pathIdx(i,1),pathIdx(i,2))/60; % divided by 60 to be per second not per minute
     pathCO2(i)= co2(pathIdx(i,1),pathIdx(i,2))/60; % divided by 60 to be per second not per minute
@@ -49,8 +49,8 @@ end
 
 % Calculate cumulative consumed O2 and generated O2
 cellT = t(2:end)-t(1:end-1); % time spent in each cell
-if length(cellT) > length(pathO2)
-    cellT=cellT(1:end-1);
+if length(cellT) < length(pathO2)
+    cellT = [cellT;0];
 end
 consumedO2 = cellT.*pathO2; % O2 [g] consumed by end of time in each segment
 consumedO2 = cumsum(consumedO2); % cumulative O2 [g] consumed by end of time in each segment
@@ -155,7 +155,7 @@ if (~isempty(badO2) || ~isempty(badCO2))
             endPoseIdx = badO2(1);
             endPose = path(badO2(1),:);
         else
-            goHomeFlag(1) = 1;
+            goHomeFlag(1) = 0;
         end
     else
         goHomeFlag(1) = 0;
