@@ -17,6 +17,7 @@ O2threshold = 476/2; % [g] (arbitrarily chosen for now to get interesting result
 % Specify CO2 threshold that requires path replan
 CO2threshold = 671/2; % [g] (arbitrarily chosen for now to get interesting results)
 
+
 %% Calculate distance of each path segment
 path1 = path(1:end-1,:);
 path2 = path(2:end,:);
