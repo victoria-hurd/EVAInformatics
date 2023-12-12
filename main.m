@@ -105,7 +105,7 @@ function main()
 
         % Get new path between POIs using updated POI list
         [path, pathIdx, updated_cost_matrix] = create_path(POIs, X, Y, Z_slope, cost_matrix);
-        [replanFlag,goHomeFlag,endPose,endPoseIdx,newO2,newCO2,newt] = walkthrough(path, pathIdx,updated_cost_matrix,usedO2,usedCO2,usedt);
+        [replanFlag,goHomeFlag,endPose,endPoseIdx,newO2,newCO2,newt] = walkthrough(path, pathIdx,cost_matrix,usedO2,usedCO2,usedt);
         firstRunFlag = 0;
         usedO2 = newO2;
         usedCO2 = newCO2;
