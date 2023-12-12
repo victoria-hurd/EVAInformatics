@@ -52,9 +52,11 @@ function main()
 
     % Set initial conditions for replanning
     replanFlag = 1; % When this is set = 0, our path doesnt exceed any thresholds and we are done
-    penalty = 0.99; % This affects the cost associated with sloped cells, iteratively increase it if we need to penalize them more
+    penalty = 1; % This affects the cost associated with sloped cells, iteratively increase it if we need to penalize them more
     pathHistory = {}; % This is where we store all of the paths we generated
     endPoseHistory = []; % This is where we store the indices of where we end each path (where a threshold was exceeded)
+    usedO2 = 0;
+    usedCO2 = 0;
     
     % While we are still walking the path and could need more replanning
     while replanFlag == 1
@@ -97,7 +99,9 @@ function main()
 
         % Get new path between POIs using updated POI list
         [path, pathIdx, updated_cost_matrix] = create_path(POIs, X, Y, Z_slope, cost_matrix);
-        [replanFlag,goHomeFlag,endPose,endPoseIdx] = walkthrough(path, pathIdx,updated_cost_matrix);
+        [replanFlag,goHomeFlag,endPose,endPoseIdx,newO2,newCO2] = walkthrough(path, pathIdx,updated_cost_matrix,usedO2,usedCO2);
+        usedO2 = newO2;
+        usedCO2 = newCO2;
         if replanFlag == 1
             penalty = penalty + 0.01;
         end
