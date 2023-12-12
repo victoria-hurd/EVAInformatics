@@ -52,11 +52,14 @@ function main()
 
     % Set initial conditions for replanning
     replanFlag = 1; % When this is set = 0, our path doesnt exceed any thresholds and we are done
+    wentHomeFlag = 0;
+    firstRunFlag = 1;
     penalty = 1; % This affects the cost associated with sloped cells, iteratively increase it if we need to penalize them more
     pathHistory = {}; % This is where we store all of the paths we generated
     endPoseHistory = []; % This is where we store the indices of where we end each path (where a threshold was exceeded)
     usedO2 = 0;
     usedCO2 = 0;
+    usedt = 0;
     
     % While we are still walking the path and could need more replanning
     while replanFlag == 1
@@ -64,16 +67,19 @@ function main()
         % Create the Cost Matrix
         cost_matrix = create_cost_matrix(X, Y, Z_slope, penalty);
 
+        if ~ firstRunFlag
+            % Update path history
+            pathHistory{end+1} = path; % the path we were on when we exceeded a threshold
+            endPoseHistory = [endPoseHistory;endPoseIdx]; % the point we made it to on that path
+            firstRunFlag = 0;
+        end
+
         % If we need to penalize slope more
         if penalty > 1
 
             % Update POI list - our next path only needs to hit the POIs we
             % haven't visited yet
 
-            % Update path history
-            pathHistory{end+1} = path; % the path we were on when we exceeded a threshold
-            endPoseHistory = [endPoseHistory;endPoseIdx]; % the point we made it to on that path
-    
             % Check what ROIs we've visited
             POIcounter = 1;
             while 1
@@ -99,9 +105,11 @@ function main()
 
         % Get new path between POIs using updated POI list
         [path, pathIdx, updated_cost_matrix] = create_path(POIs, X, Y, Z_slope, cost_matrix);
-        [replanFlag,goHomeFlag,endPose,endPoseIdx,newO2,newCO2] = walkthrough(path, pathIdx,updated_cost_matrix,usedO2,usedCO2);
+        [replanFlag,goHomeFlag,endPose,endPoseIdx,newO2,newCO2,newt] = walkthrough(path, pathIdx,updated_cost_matrix,usedO2,usedCO2,usedt);
+        firstRunFlag = 0;
         usedO2 = newO2;
         usedCO2 = newCO2;
+        usedt = newt;
         if replanFlag == 1
             penalty = penalty + 0.01;
         end
@@ -109,6 +117,13 @@ function main()
             % If we have a go home flag (remember size(goHomeFlag) = [2,1]
             % then only plan from endPose to last POI
             POIs = [endPose;POIs(end,:)];
+            if wentHomeFlag == 1
+                replanFlag = 0;
+            end
+            if replanFlag == 0 && wentHomeFlag == 0
+                replanFlag = 1;
+                wentHomeFlag = 1;
+            end
         end
     end
 

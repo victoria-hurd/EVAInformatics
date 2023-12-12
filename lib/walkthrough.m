@@ -1,20 +1,21 @@
 % Vicki/Erin time script
 
-function [replanFlag,goHomeFlag,endPose,endPoseIdx,usedO2,usedCO2] = walkthrough(path, pathIdx,updated_cost_matrix, usedO2, usedCO2)
+function [replanFlag,goHomeFlag,endPose,endPoseIdx,usedO2,usedCO2,usedt] = walkthrough(path, pathIdx,updated_cost_matrix, usedO2, usedCO2,usedt)
 %% Constants
 
 % Assign constant walking velocity
 v = 2.2/3.6; % [km/hr]*[m/s] ---- source: https://history.nasa.gov/alsj/a11/a11.gaits.html#:~:text=During%20Apollo%2015%2C%20researchers%20in,sec%20during%20the%20second%20EVA
+%v = 0.1/3.6;
 
 % Switch from longitude degrees to meters to find distance
 coord2m = 30.28*1000; % [m] --- source: https://www.lpi.usra.edu/lunar/tools/lunardistancecalc/
 
 % Specify HR threshold that requires path replan
-HRthreshold = 110; % [bpm] (arbitrarily chosen for now to get interesting results)
+HRthreshold = 148; % [bpm] (arbitrarily chosen for now to get interesting results)
 % Specify O2 threshold that requires path replan
-O2threshold = 3; % [g/min] (arbitrarily chosen for now to get interesting results)
+O2threshold = 476/2; % [g] (arbitrarily chosen for now to get interesting results)
 % Specify CO2 threshold that requires path replan
-CO2threshold = 5; % [g/min] (arbitrarily chosen for now to get interesting results)
+CO2threshold = 671/2; % [g] (arbitrarily chosen for now to get interesting results)
 
 %% Calculate distance of each path segment
 path1 = path(1:end-1,:);
@@ -26,9 +27,9 @@ dists = dists*coord2m;
 
 %% Collect time vector
 % Calculate time elapsed at each step
-t = cumsum(dists)*v;
+t = cumsum(dists)/v;
 % Add 0 for time at starting point
-t = [0;t];
+t = [0;t]+usedt;
 
 %% Vital Estimator
 % Use vital_estimator() to find HR, O2, CO2 associated with each cell in
@@ -131,7 +132,7 @@ badHR = find(pathHR>HRthreshold);
 if isempty(badHR)
    replanFlag = 0;
    endPose = nan;
-   endPoseIdx = nan;
+   endPoseIdx = length(pathIdx);
 % If it was, set flag for replanning. Save end pose and end pose index to
 % begin next path at
 else
@@ -179,10 +180,8 @@ else
     goHomeFlag = [0;0];
 end
 
-if ~isnan(endPoseIdx)
-    usedO2 = consumedO2(endPoseIdx);
-    usedCO2 = generatedCO2(endPoseIdx);
-else
-    usedO2 = nan;
-    usedCO2 = nan;
-end
+usedt = t(endPoseIdx);
+usedO2 = consumedO2(endPoseIdx);
+usedCO2 = generatedCO2(endPoseIdx);
+
+
