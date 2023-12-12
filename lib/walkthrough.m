@@ -10,7 +10,7 @@ v = 2.2/3.6; % [km/hr]*[m/s] ---- source: https://history.nasa.gov/alsj/a11/a11.
 coord2m = 30.28*1000; % [m] --- source: https://www.lpi.usra.edu/lunar/tools/lunardistancecalc/
 
 % Specify HR threshold that requires path replan
-HRthreshold = 110; % [bpm] (arbitrarily chosen for now to get interesting results)
+HRthreshold = 148; % [bpm] (arbitrarily chosen for now to get interesting results)
 
 %% Calculate distance of each path segment
 path1 = path(1:end-1,:);
