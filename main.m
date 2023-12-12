@@ -97,7 +97,9 @@ function main()
         % Get new path between POIs using updated POI list
         [path, pathIdx, updated_cost_matrix] = create_path(POIs, X, Y, Z_slope, cost_matrix);
         [replanFlag,goHomeFlag,endPose,endPoseIdx] = walkthrough(path, pathIdx,updated_cost_matrix);
-        penalty = penalty + 0.01;
+        if replanFlag == 1
+            penalty = penalty + 0.01;
+        end
         if mean(goHomeFlag) ~= 0
             % If we have a go home flag (remember size(goHomeFlag) = [2,1]
             % then only plan from endPose to last POI
