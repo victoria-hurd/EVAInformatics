@@ -12,6 +12,9 @@ function [hr, o2, co2] = vital_estimator(M)
 % medium workload: <3000 kJ/h
 % high workload >3000 kJ/h
 
+% convert MR matrix from kcal/s to kJ/h
+M = M*15062.4;
+
 % preallocate matrix space
 N = size(M);
 MWL = zeros(N);
