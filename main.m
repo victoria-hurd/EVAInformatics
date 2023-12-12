@@ -151,6 +151,6 @@ function main()
     % plot_path_simple(X, Y, Z_slope, OGPOIs, path, flip(gray,1), "Slope [Degrees]");
     % 
     % %% Plot Moving Along Path
-    % % Plot Interactive Vizualization
-    % plot_path_full_view(X, Y, Z_elevation, OGPOIs, path, elev_matrix_color, "Elevation [Meters]");
+    % Plot Interactive Vizualization  
+    plot_path_full_view(X, Y, Z_elevation, OGPOIs, pathHistory, endPoseHistory, elev_matrix_color, "Elevation [Meters]", updated_cost_matrix);
 end
