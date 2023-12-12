@@ -3,19 +3,18 @@
 function [replanFlag,goHomeFlag,endPose,endPoseIdx,usedO2,usedCO2,usedt] = walkthrough(path, pathIdx,updated_cost_matrix, usedO2, usedCO2,usedt)
 %% Constants
 
-% Assign constant walking velocity
-v = 2.2/3.6; % [km/hr]*[m/s] ---- source: https://history.nasa.gov/alsj/a11/a11.gaits.html#:~:text=During%20Apollo%2015%2C%20researchers%20in,sec%20during%20the%20second%20EVA
-%v = 0.1/3.6;
+% Assign constant walking velocity (2.2 km/hr nominal)
+v = 2.2/3.6; % [m/s] ---- source: https://history.nasa.gov/alsj/a11/a11.gaits.html#:~:text=During%20Apollo%2015%2C%20researchers%20in,sec%20during%20the%20second%20EVA
 
 % Switch from longitude degrees to meters to find distance
 coord2m = 30.28*1000; % [m] --- source: https://www.lpi.usra.edu/lunar/tools/lunardistancecalc/
 
 % Specify HR threshold that requires path replan
-HRthreshold = 148; % [bpm] (arbitrarily chosen for now to get interesting results)
+HRthreshold = 148; % [bpm] (148 nominal)
 % Specify O2 threshold that requires path replan
-O2threshold = 476/2; % [g] (arbitrarily chosen for now to get interesting results)
+O2threshold = 476/2; % [g] (476 nominal, divide by 2 for 50%)
 % Specify CO2 threshold that requires path replan
-CO2threshold = 671/2; % [g] (arbitrarily chosen for now to get interesting results)
+CO2threshold = 671/2; % [g] (671 nominal, divide by 2 for 50%)
 
 
 %% Calculate distance of each path segment
