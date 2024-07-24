@@ -1,151 +1,156 @@
-% Victoria Hurd & Aaron Weinberg
-% EVA Informatics
-% Main Script
+%% main_runner
+%  Main Runner Script
+%  Gathers input map data
+%  determines POI order 
+%  creates a predicted cost map
+%  creates path between ROIs factoring in the cost map
+%  Creates a vizualization for traversing the path with alerts displayed
+%  from physiolical monitoring
 
-%% Housekeeping
-clear; clc;% close all
+function main()
+    %% Housekeeping
+    addpath('lib/');
 
-% %% Load .mat
-% 
-% 
-% %% Constants
-% resolution = 0.001953125;
-% minLat = -30;
-% maxLat = 0;
-% minLong = 315;
-% maxLong = 360;
-% LEMcoord = [360-23.41930,-3.01381]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
-% 
-% % For dimensions centered around Apollo 12 LEM
-% Height = 500;
-% Width = 1000;
-% 
-% %% Generate Meshgrid
-% % Generate axes
-% lat = maxLat:-resolution:(minLat+resolution);
-% long = minLong:resolution:(maxLong-resolution);
-% 
-% %find the index on our axes for the LEM
-% long_LEM_idx = interp1(long,1:length(long),LEMcoord(1),'nearest');
-% lat_LEM_idx = interp1(lat,1:length(lat),LEMcoord(2),'nearest');
-% 
-% X_start_idx = long_LEM_idx-Width;
-% X_end_idx = long_LEM_idx+Width;
-% Y_start_idx = lat_LEM_idx-Height;
-% Y_end_idx = lat_LEM_idx+Height;
-% 
-% % Protect for the axes window going out of bounds of our input file
-% if X_start_idx < 1
-%     X_start_idx = 1;
-% end
-% if Y_start_idx < 1
-%     Y_start_idx = 1;
-% end
-% if X_end_idx > length(long)
-%     X_end_idx = length(long);
-% end
-% if Y_end_idx > length(lat)
-%     Y_end_idx = length(lat);
-% end
-% 
-% % Generate Meshgrid and Z axis window
-% Z_elevation = elev(Y_start_idx:Y_end_idx, X_start_idx:X_end_idx);
-% Z_slope = slope(Y_start_idx:Y_end_idx, X_start_idx:X_end_idx);
-% [X,Y] = meshgrid(long(X_start_idx:X_end_idx),lat(Y_start_idx:Y_end_idx));
+    clear; clc;
+    all_fig = findall(0, 'type', 'figure');
+    close(all_fig)
+ 
+    %% Regions of Interest (ROIs)
+    coord12055 = [336.573,-3.0115]; % Measured by hand from figure 1 - North Head Crater
+    coord12052 = [336.571,-3.01384]; % Measured by hand from figure 1 - West Head Crater
+    coord12040 = [336.570, -3.018]; % Measured by hand from figure 1 - NW Bench Crater
+    coord12024 = [336.565,-3.0205]; % Measured by hand from figure 1 - E Sharp Crater
+    coord12041 = [336.572,-3.02024]; % Measured by hand from figure 1 - E Bench Crater
+    coordVec = [coord12055;coord12052;coord12040;coord12024;coord12041];
+    % User input for selected points
+%     coordVec = user_fed_POI();
+    
+    %% Get Map Data Centered on the POIs (Points of Interrest)
+%     Get center and radius that encompasses all points automatically with 1.5 scale out   
+    Scale_factor = 1.8;
+    center_X = (min(coordVec(:,1)) + max(coordVec(:,1)))/2;
+    center_Y = (min(coordVec(:,2)) + max(coordVec(:,2)))/2;    
+    width_coords = abs(center_X - min(coordVec(:,1))) * Scale_factor;
+    height_coords = abs(center_Y - min(coordVec(:,2))) * Scale_factor;
 
-%% Load .mat
-t = Tiff('./data_2m/NAC_DTM_APOLLO12.tiff','r');
-imageData = read(t);
-imageData(imageData < -1000000000) = NaN; % out of bound data needs to be marked NaN
+    [X, Y, Z_elevation, Z_slope] = get_map_data(center_X, center_Y,  width_coords, height_coords);
+    
+    %% Determining POI Order
+    %Normalize coordinats to the 2m input grid so that the path is on POIs
+    X_POI = interp1(X(1,:),X(1,:),coordVec(:,1),'nearest');
+    Y_POI = interp1(Y(:,1),Y(:,1),coordVec(:,2),'nearest');
+    coordVec = [X_POI, Y_POI];
+       
+    % Solve Traveling Salesman Problem
+    POIOrder = solve_TSP(coordVec);
+    POIs = coordVec(POIOrder,:);
+    POIs = [POIs;POIs(1,:)]; % hard code for now to force going home
+    OGPOIs = POIs;
+   
+    
+    %% Walkthrough.m
 
-%% Constants
-pixel_resolution = 2; % meters / pixel
-minLat = -3.05226826;
-maxLat = -2.96217267;
-minLong = 336.45205417;
-maxLong = 336.61505963;
-LEMcoord = [360-23.41930,-3.01381]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
-ALSEPcoord = [360-23.42456,-3.01084]; % Using the Adjusted Coordinates https://history.nasa.gov/alsj/alsjcoords.html
-% Numbering for each POI is from https://an.rsl.wustl.edu/apollo/mainnavsp.aspx?tab=map&m=A12
-%coord12004 = [336.569,-3.00706]; % Measured by hand from figure 1 - Middle Crescent Crater
-coord12055 = [336.573,-3.01233]; % Measured by hand from figure 1 - North Head Crater
-coord12052 = [336.572,-3.01384]; % Measured by hand from figure 1 - West Head Crater
-coord12040 = [336.570, -3.01938]; % Measured by hand from figure 1 - NW Bench Crater
-coord12024 = [336.565,-3.0205]; % Measured by hand from figure 1 - E Sharp Crater
-coord12041 = [336.571,-3.02024]; % Measured by hand from figure 1 - E Bench Crater
-coordVec = [coord12055;coord12052;coord12040;coord12024;coord12041];
-%% Auto-Centering
-% For dimensions centered around Apollo 12 LEM
-Radius = 1000; % meters - (temporary fix: decreased this from 5000 to 1000 to avoid NaNs that were present along the outsides of the map)
-Height = Radius / pixel_resolution;
-Width = Radius / pixel_resolution;
-LatDelta = maxLat - minLat;
-LongDelta = maxLong - minLong;
-% LatDelta / length(imageData)
-numLats = length(imageData(:,1));
-numLongs = length(imageData(1,:));
-latResolution = LatDelta/numLats;
-LongResolution = LongDelta/numLongs;
-%% Generate Meshgrid
-% Generate axes
-lat = maxLat:-latResolution:(minLat + latResolution);
-long = minLong:LongResolution:(maxLong - LongResolution);
-% find the index on our axes for the LEM
-long_LEM_idx = interp1(long,1:length(long),LEMcoord(1),'nearest');
-lat_LEM_idx = interp1(lat,1:length(lat),LEMcoord(2),'nearest');
-X_start_idx = long_LEM_idx-Width;
-X_end_idx = long_LEM_idx+Width;
-Y_start_idx = lat_LEM_idx-Height;
-Y_end_idx = lat_LEM_idx+Height;
-% Protect for the axes window going out of bounds of our input file
-if X_start_idx < 1
-    X_start_idx = 1;
+    % Set initial conditions for replanning
+    replanFlag = 1; % When this is set = 0, our path doesnt exceed any thresholds and we are done
+    wentHomeFlag = 0;
+    firstRunFlag = 1;
+    penalty = 1; % This affects the cost associated with sloped cells, iteratively increase it if we need to penalize them more
+    pathHistory = {}; % This is where we store all of the paths we generated
+    endPoseHistory = []; % This is where we store the indices of where we end each path (where a threshold was exceeded)
+    usedO2 = 0;
+    usedCO2 = 0;
+    usedt = 0;
+    
+    % While we are still walking the path and could need more replanning
+    while replanFlag == 1
+
+        % Create the Cost Matrix
+        cost_matrix = create_cost_matrix(X, Y, Z_slope, penalty);
+
+        if ~ firstRunFlag
+            % Update path history
+            pathHistory{end+1} = path; % the path we were on when we exceeded a threshold
+            endPoseHistory = [endPoseHistory;endPoseIdx]; % the point we made it to on that path
+            firstRunFlag = 0;
+        end
+
+        % If we need to penalize slope more
+        if penalty > 1
+
+            % Update POI list - our next path only needs to hit the POIs we
+            % haven't visited yet
+
+            % Check what ROIs we've visited
+            POIcounter = 1;
+            while 1
+
+                % Find index of POI i
+                poiX = path(:,1) == POIs(POIcounter,1);
+                poiY = path(:,2) == POIs(POIcounter,2);
+                poiIdx = find(and(poiX,poiY));
+                
+                % Check if we had visited that POI yet
+                % If we hadn't then retain that and all subsequent POIs for
+                % next path
+                if poiIdx > endPoseIdx
+                    POIs = [endPose;POIs(POIcounter:end,:)]; 
+                    break
+                % If we had visited it, check the next POI in the list
+                else
+                    % add to counter
+                    POIcounter = POIcounter+1;
+                end
+            end
+        end
+
+        % Get new path between POIs using updated POI list
+        [path, pathIdx, updated_cost_matrix] = create_path(POIs, X, Y, Z_slope, cost_matrix);
+        [replanFlag,goHomeFlag,endPose,endPoseIdx,newO2,newCO2,newt] = walkthrough(path, pathIdx,cost_matrix,usedO2,usedCO2,usedt);
+        firstRunFlag = 0;
+        usedO2 = newO2;
+        usedCO2 = newCO2;
+        usedt = newt;
+        if replanFlag == 1
+            penalty = penalty + 0.01;
+        end
+        if mean(goHomeFlag) ~= 0
+            % If we have a go home flag (remember size(goHomeFlag) = [2,1]
+            % then only plan from endPose to last POI
+            POIs = [endPose;POIs(end,:)];
+            if wentHomeFlag == 1
+                replanFlag = 0;
+            end
+            if replanFlag == 0 && wentHomeFlag == 0
+                replanFlag = 1;
+                wentHomeFlag = 1;
+            end
+        end
+    end
+
+    % Update path history - add last path visited (that didn't require a
+    % replan) to the path history plot
+    pathHistory{end+1} = path;
+
+
+    %% Path History Plot
+    elev_matrix_color = gray;
+    elev_matrix_color = elev_matrix_color*0.8; 
+    plot_path_history(X, Y, Z_elevation, OGPOIs, pathHistory, endPoseHistory, elev_matrix_color, "Elevation [Meters]");
+
+    % %% Plot Simple
+    % cost_matrix_color = flip(gray,1) * 0.8;
+    % cost_matrix_color(end, :) = [1, 0, 0];
+    % plot_path_simple(X, Y, updated_cost_matrix, OGPOIs, path, cost_matrix_color, "Cost Map [Normalized with bounds]");
+    % 
+    % % Create custom colormap and Plot Elevation
+    % elev_matrix_color = gray;
+    % elev_matrix_color = elev_matrix_color*0.8;  
+    % plot_path_simple(X, Y, Z_elevation, OGPOIs, path, elev_matrix_color, "Elevation [Meters]");
+    % 
+    % % Plot Slope
+    % plot_path_simple(X, Y, Z_slope, OGPOIs, path, flip(gray,1), "Slope [Degrees]");
+    % 
+    % %% Plot Moving Along Path
+    % Plot Interactive Vizualization  
+    plot_path_full_view(X, Y, Z_elevation, OGPOIs, pathHistory, endPoseHistory, elev_matrix_color, "Elevation [Meters]", updated_cost_matrix);
 end
-if Y_start_idx < 1
-    Y_start_idx = 1;
-end
-if X_end_idx > length(long)
-    X_end_idx = length(long);
-end
-if Y_end_idx > length(lat)
-    Y_end_idx = length(lat);
-end
-% Generate Meshgrid and Z axis window
-Z_elevation = imageData(Y_start_idx:Y_end_idx, X_start_idx:X_end_idx);
-[Z_slope_X, Z_slope_Y] = gradient(Z_elevation); %get the x and y components of the gradient
-Z_slope = atand(sqrt(Z_slope_X.^2 + Z_slope_Y.^2)); % get the normalized gradient and take the arc tan to get degrees
-
-[X,Y] = meshgrid(long(X_start_idx:X_end_idx),lat(Y_start_idx:Y_end_idx));
-
-%% View
-% Plotting Elevation
-figure
-hold on 
-scatter(LEMcoord(1),LEMcoord(2),"filled","red")
-legend("Apollo 12 Landing Site")
-h = surf(X,Y,Z_elevation);
-set(h,'LineStyle','none')
-h.Annotation.LegendInformation.IconDisplayStyle = 'off';
-title("Lunar Elevation")
-xlabel("Longitude [deg]")
-ylabel("Latitude [deg]")
-axis equal
-axis tight
-colorbar
-hold off
-
-% Plotting Slope
-figure
-hold on 
-scatter(LEMcoord(1),LEMcoord(2),"filled","red")
-legend("Apollo 12 Landing Site")
-h = surf(X,Y,Z_slope);
-set(h,'LineStyle','none')
-h.Annotation.LegendInformation.IconDisplayStyle = 'off';
-title("Lunar Slope")
-xlabel("Longitude [deg]")
-ylabel("Latitude [deg]")
-axis equal
-axis tight
-colorbar
-hold off
